@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator - Master Admin</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #0a0b10; color: white; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; }
+        h2 { color: #f2a900; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        
+        .card { background: #16171d; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; font-size: 14px; }
+        th { background: #222; color: #888; }
+        
+        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .btn-approve { background: #28a745; color: white; margin-right: 5px; }
+        .btn-reject { background: #dc3545; color: white; }
+        .btn-update { background: #007bff; color: white; }
+        
+        input { background: #000; border: 1px solid #444; color: white; padding: 8px; border-radius: 5px; width: 100px; }
+        .status-pending { color: #f2a900; font-weight: bold; }
+        .status-done { color: #28a745; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚀 Aviator Master Admin</h1>
+
+    <div class="card">
+        <h2>Deposit Requests (JazzCash)</h2>
+        <table id="depTable">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Amount</th>
+                    <th>TID</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="depList"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Withdrawal Requests</h2>
+        <table id="witTable">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Amount</th>
+                    <th>Acc Number</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="witList"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>User Management (Edit Balance)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>User Email</th>
+                    <th>Current Bal</th>
+                    <th>New Bal</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="userList"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Firebase Config (Same as Game)
+const firebaseConfig = { 
+    apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
+    databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Load Data
+function loadAll() {
+    // 1. Deposits
+    db.ref('requests').orderByChild('type').equalTo('deposit').on('value', s => {
+        let html = '';
+        s.forEach(child => {
+            const r = child.val();
+            if(r.status === 'pending') {
+                html += `<tr>
+                    <td>${r.uid.substr(0,10)}...</td>
+                    <td>Rs ${r.amount}</td>
+                    <td><b>${r.tid}</b></td>
+                    <td>
+                        <button class="btn btn-approve" onclick="approveDep('${child.key}', '${r.uid}', ${r.amount})">Approve</button>
+                        <button class="btn btn-reject" onclick="rejectReq('${child.key}')">Reject</button>
+                    </td>
+                </tr>`;
+            }
+        });
+        document.getElementById('depList').innerHTML = html || '<tr><td colspan="4">No pending deposits</td></tr>';
+    });
+
+    // 2. Withdrawals
+    db.ref('requests').orderByChild('type').equalTo('withdraw').on('value', s => {
+        let html = '';
+        s.forEach(child => {
+            const r = child.val();
+            if(r.status === 'pending') {
+                html += `<tr>
+                    <td>${r.uid.substr(0,10)}...</td>
+                    <td>Rs ${r.amount}</td>
+                    <td>${r.number || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-approve" onclick="approveWit('${child.key}')">Mark Paid</button>
+                        <button class="btn btn-reject" onclick="rejectReq('${child.key}')">Reject</button>
+                    </td>
+                </tr>`;
+            }
+        });
+        document.getElementById('witList').innerHTML = html || '<tr><td colspan="4">No pending withdrawals</td></tr>';
+    });
+
+    // 3. All Users
+    db.ref('users').on('value', s => {
+        let html = '';
+        s.forEach(child => {
+            const u = child.val();
+            html += `<tr>
+                <td>User ID: ${child.key.substr(0,10)}</td>
+                <td>Rs ${u.balance.toFixed(2)}</td>
+                <td><input type="number" id="newBal_${child.key}" placeholder="Set Bal"></td>
+                <td><button class="btn btn-update" onclick="updateBal('${child.key}')">Update</button></td>
+            </tr>`;
+        });
+        document.getElementById('userList').innerHTML = html;
+    });
+}
+
+// Admin Actions
+function approveDep(reqId, userId, amount) {
+    db.ref('users/' + userId + '/balance').transaction(current => (current || 0) + parseFloat(amount));
+    db.ref('requests/' + reqId).update({ status: 'approved' });
+    alert("Deposit Approved!");
+}
+
+function approveWit(reqId) {
+    db.ref('requests/' + reqId).update({ status: 'completed' });
+    alert("Withdrawal Marked as Paid!");
+}
+
+function rejectReq(reqId) {
+    db.ref('requests/' + reqId).remove();
+    alert("Request Rejected/Deleted");
+}
+
+function updateBal(userId) {
+    const val = document.getElementById('newBal_' + userId).value;
+    if(val === "") return alert("Enter value");
+    db.ref('users/' + userId).update({ balance: parseFloat(val) });
+    alert("Balance Updated!");
+}
+
+loadAll();
+</script>
+</body>
+</html>
