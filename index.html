@@ -7,9 +7,20 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
     <style>
         :root { --red: #ea0606; --bg: #0f1015; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
         body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
+        
+        /* Login Box Style */
+        #login-box { 
+            max-width: 400px; margin: 100px auto; background: var(--card); 
+            padding: 30px; border-radius: 12px; text-align: center; border: 1px solid var(--gold);
+        }
+        .login-input { width: 90%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; }
+        .login-btn { background: var(--gold); color: #000; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
+
+        /* Dashboard Style */
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--win); padding-bottom: 10px; margin-bottom: 20px; }
         .section { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; }
         h2 { color: var(--gold); font-size: 18px; text-transform: uppercase; margin-top: 0; }
@@ -24,137 +35,155 @@
     </style>
 </head>
 <body>
-// Firebase Login Function
+
+<div id="login-box">
+    <h2 style="color:var(--gold)">PAK AVIATOR VIP</h2>
+    <p>Master Admin Access</p>
+    <input type="email" id="adminEmail" class="login-input" value="M50516573@gmail.com" readonly>
+    <input type="password" id="adminPass" class="login-input" placeholder="Enter VIP Password">
+    <button class="login-btn" onclick="loginAdmin()">LOGIN TO DASHBOARD</button>
+</div>
+
+<div id="admin-dashboard" style="display: none;">
+    <div class="header">
+        <div><h1>MASTER ADMIN</h1><small>Aviator Project Control</small></div>
+        <div id="stats">Users: Loading...</div>
+    </div>
+
+    <div class="section">
+        <h2>Deposit Requests (Check TID)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>User Gmail</th>
+                    <th>Amount</th>
+                    <th>TID (JazzCash)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="depList"></tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Withdrawal Requests</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>User Gmail</th>
+                    <th>Amount</th>
+                    <th>Account</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="witList"></tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>User Management (Edit Balance)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>User Gmail</th>
+                    <th>Current Bal</th>
+                    <th>Set New</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="userList"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Firebase Configuration
+const conf = { 
+    apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
+    databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
+};
+firebase.initializeApp(conf);
+const db = firebase.database();
+
+// Login Function
 function loginAdmin() {
     const email = "M50516573@gmail.com";
-    const pass = "CoDe$$$0351000";
+    const pass = document.getElementById("adminPass").value;
 
     firebase.auth().signInWithEmailAndPassword(email, pass)
     .then((userCredential) => {
         alert("VIP Access Granted! Welcome Waseem Bhai.");
         document.getElementById("login-box").style.display = "none";
         document.getElementById("admin-dashboard").style.display = "block";
-        // Yahan aapka data load karne wala function call hoga
-        loadDashboardData(); 
+        startApp(); // Data load karna shuru karein
     })
     .catch((error) => {
-        alert("Error: " + error.message);
+        alert("Wrong Password or Access Error: " + error.message);
     });
 }
 
-<div class="header">
-    <div><h1>MASTER ADMIN</h1><small>Aviator Project Control</small></div>
-    <div id="stats">Users: Loading...</div>
-</div>
+// Function to load all data
+function startApp() {
+    // Load Deposits
+    db.ref('requests').orderByChild('type').equalTo('deposit').on('value', snap => {
+        let html = "";
+        snap.forEach(child => {
+            const r = child.val();
+            if(r.status === 'pending') {
+                html += `<tr>
+                    <td style="color:var(--blue)">${r.email || 'N/A'}</td>
+                    <td>Rs ${r.amount}</td>
+                    <td style="color:var(--gold)">${r.tid}</td>
+                    <td>
+                        <button class="btn btn-app" onclick="approveDep('${child.key}', '${r.uid}', ${r.amount})">APPROVE</button>
+                        <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJECT</button>
+                    </td>
+                </tr>`;
+            }
+        });
+        document.getElementById('depList').innerHTML = html || "<tr><td colspan='4'>No pending deposits</td></tr>";
+    });
 
-<div class="section">
-    <h2>Deposit Requests (Check TID)</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>User Gmail</th>
-                <th>Amount</th>
-                <th>TID (JazzCash)</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="depList"></tbody>
-    </table>
-</div>
+    // Load Withdrawals
+    db.ref('requests').orderByChild('type').equalTo('withdraw').on('value', snap => {
+        let html = "";
+        snap.forEach(child => {
+            const r = child.val();
+            if(r.status === 'pending') {
+                html += `<tr>
+                    <td style="color:var(--blue)">${r.email || 'N/A'}</td>
+                    <td>Rs ${r.amount}</td>
+                    <td>${r.number}</td>
+                    <td>
+                        <button class="btn btn-app" onclick="updateStatus('${child.key}', 'paid')">PAID</button>
+                        <button class="btn btn-rej" onclick="refundWit('${child.key}', '${r.uid}', ${r.amount})">REJECT</button>
+                    </td>
+                </tr>`;
+            }
+        });
+        document.getElementById('witList').innerHTML = html || "<tr><td colspan='4'>No pending withdrawals</td></tr>";
+    });
 
-<div class="section">
-    <h2>Withdrawal Requests</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>User Gmail</th>
-                <th>Amount</th>
-                <th>Account</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="witList"></tbody>
-    </table>
-</div>
-
-<div class="section">
-    <h2>User Management (Edit Balance)</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>User Gmail</th>
-                <th>Current Bal</th>
-                <th>Set New</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="userList"></tbody>
-    </table>
-</div>
-
-<script>
-const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
-firebase.initializeApp(conf);
-const db = firebase.database();
-
-// Load Deposits
-db.ref('requests').orderByChild('type').equalTo('deposit').on('value', snap => {
-    let html = "";
-    snap.forEach(child => {
-        const r = child.val();
-        if(r.status === 'pending') {
+    // Load Users
+    db.ref('users').on('value', snap => {
+        let html = "";
+        let count = 0;
+        snap.forEach(child => {
+            count++;
+            const u = child.val();
             html += `<tr>
-                <td style="color:var(--blue)">${r.email || 'N/A'}</td>
-                <td>Rs ${r.amount}</td>
-                <td style="color:var(--gold)">${r.tid}</td>
-                <td>
-                    <button class="btn btn-app" onclick="approveDep('${child.key}', '${r.uid}', ${r.amount})">APPROVE</button>
-                    <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJECT</button>
-                </td>
+                <td>${u.email}</td>
+                <td style="color:var(--win)">Rs ${u.balance.toFixed(2)}</td>
+                <td><input type="number" id="newBal_${child.key}" placeholder="0"></td>
+                <td><button class="btn btn-set" onclick="setBalance('${child.key}')">SET</button></td>
             </tr>`;
-        }
+        });
+        document.getElementById('userList').innerHTML = html;
+        document.getElementById('stats').innerText = "Users: " + count;
     });
-    document.getElementById('depList').innerHTML = html || "<tr><td colspan='4'>No pending deposits</td></tr>";
-});
+}
 
-// Load Withdrawals
-db.ref('requests').orderByChild('type').equalTo('withdraw').on('value', snap => {
-    let html = "";
-    snap.forEach(child => {
-        const r = child.val();
-        if(r.status === 'pending') {
-            html += `<tr>
-                <td style="color:var(--blue)">${r.email || 'N/A'}</td>
-                <td>Rs ${r.amount}</td>
-                <td>${r.number}</td>
-                <td>
-                    <button class="btn btn-app" onclick="updateStatus('${child.key}', 'paid')">PAID</button>
-                    <button class="btn btn-rej" onclick="refundWit('${child.key}', '${r.uid}', ${r.amount})">REJECT</button>
-                </td>
-            </tr>`;
-        }
-    });
-    document.getElementById('witList').innerHTML = html || "<tr><td colspan='4'>No pending withdrawals</td></tr>";
-});
-
-// Load Users
-db.ref('users').on('value', snap => {
-    let html = "";
-    let count = 0;
-    snap.forEach(child => {
-        count++;
-        const u = child.val();
-        html += `<tr>
-            <td>${u.email}</td>
-            <td style="color:var(--win)">Rs ${u.balance.toFixed(2)}</td>
-            <td><input type="number" id="newBal_${child.key}" placeholder="0"></td>
-            <td><button class="btn btn-set" onclick="setBalance('${child.key}')">SET</button></td>
-        </tr>`;
-    });
-    document.getElementById('userList').innerHTML = html;
-    document.getElementById('stats').innerText = "Users: " + count;
-});
-
+// Admin Actions
 function approveDep(key, uid, amt) {
     db.ref('users/' + uid + '/balance').transaction(current => (current || 0) + parseFloat(amt));
     db.ref('requests/' + key).update({status: 'approved'});
