@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin - Aviator Project</title>
+    <title>Master Admin VIP - Aviator Project</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -12,26 +12,30 @@
         :root { --red: #ea0606; --bg: #0f1015; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
         body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
         
-        /* Login Box Style */
-        #login-box { 
-            max-width: 400px; margin: 100px auto; background: var(--card); 
-            padding: 30px; border-radius: 12px; text-align: center; border: 1px solid var(--gold);
-        }
+        #login-box { max-width: 400px; margin: 100px auto; background: var(--card); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid var(--gold); }
         .login-input { width: 90%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; }
         .login-btn { background: var(--gold); color: #000; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
 
-        /* Dashboard Style */
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--win); padding-bottom: 10px; margin-bottom: 20px; }
-        .section { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; }
-        h2 { color: var(--gold); font-size: 18px; text-transform: uppercase; margin-top: 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; }
+        .stat-card h3 { margin: 0; font-size: 12px; color: #888; text-transform: uppercase; }
+        .stat-card p { margin: 5px 0 0; font-size: 20px; font-weight: bold; color: var(--gold); }
+
+        .section { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; overflow-x: auto; }
+        h2 { color: var(--gold); font-size: 16px; text-transform: uppercase; margin-top: 0; display: flex; align-items: center; gap: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; min-width: 600px; }
         th { text-align: left; color: #888; padding: 12px; border-bottom: 1px solid #333; }
         td { padding: 12px; border-bottom: 1px solid #222; }
-        .btn { padding: 8px 15px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; font-size: 11px; }
-        .btn-app { background: var(--win); margin-right: 5px; }
+        
+        .btn { padding: 8px 12px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; font-size: 10px; }
+        .btn-app { background: var(--win); }
         .btn-rej { background: var(--red); }
         .btn-set { background: var(--blue); }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; width: 80px; }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 6px; border-radius: 5px; width: 70px; }
+        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .bg-win { background: rgba(40, 167, 69, 0.2); color: var(--win); }
+        .bg-red { background: rgba(234, 6, 6, 0.2); color: var(--red); }
     </style>
 </head>
 <body>
@@ -46,18 +50,39 @@
 
 <div id="admin-dashboard" style="display: none;">
     <div class="header">
-        <div><h1>MASTER ADMIN</h1><small>Aviator Project Control</small></div>
-        <div id="stats">Users: Loading...</div>
+        <div><h1>MASTER ADMIN</h1><small>Aviator Project VIP Control</small></div>
+        <button onclick="location.reload()" style="background:none; border:1px solid #444; color:#fff; padding:5px 10px; border-radius:5px; cursor:pointer;">Logout / Refresh</button>
     </div>
 
-    <div class="section">
-        <h2>Deposit Requests (Check TID)</h2>
+    <div class="stats-grid">
+        <div class="stat-card"><h3>Total Users</h3><p id="sUsers">0</p></div>
+        <div class="stat-card"><h3>Admin Profit</h3><p id="sProfit" style="color:var(--win)">Rs 0</p></div>
+        <div class="stat-card"><h3>Pending Deps</h3><p id="sDeps" style="color:var(--gold)">0</p></div>
+    </div>
+
+    <div class="section" style="border-top: 3px solid var(--blue);">
+        <h2>🚀 Live Bet History (Recent 10)</h2>
         <table>
             <thead>
                 <tr>
-                    <th>User Gmail</th>
+                    <th>User Email</th>
+                    <th>Bet Amount</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="betList"></tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>💰 Deposit Requests</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
                     <th>Amount</th>
-                    <th>TID (JazzCash)</th>
+                    <th>TID</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -66,11 +91,11 @@
     </div>
 
     <div class="section">
-        <h2>Withdrawal Requests</h2>
+        <h2>💸 Withdrawal Requests</h2>
         <table>
             <thead>
                 <tr>
-                    <th>User Gmail</th>
+                    <th>User</th>
                     <th>Amount</th>
                     <th>Account</th>
                     <th>Actions</th>
@@ -81,13 +106,16 @@
     </div>
 
     <div class="section">
-        <h2>User Management (Edit Balance)</h2>
+        <h2>👥 User Management & Referral Stats</h2>
         <table>
             <thead>
                 <tr>
                     <th>User Gmail</th>
-                    <th>Current Bal</th>
-                    <th>Set New</th>
+                    <th>Balance</th>
+                    <th>Wager</th>
+                    <th>My Code</th>
+                    <th>Refers</th>
+                    <th>Set Bal</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -97,119 +125,99 @@
 </div>
 
 <script>
-// Firebase Configuration
-const conf = { 
-    apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
-    databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
-};
+const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
 firebase.initializeApp(conf);
 const db = firebase.database();
 
-// Login Function
 function loginAdmin() {
-    const email = "M50516573@gmail.com";
-    const pass = document.getElementById("adminPass").value;
-
-    firebase.auth().signInWithEmailAndPassword(email, pass)
-    .then((userCredential) => {
-        alert("VIP Access Granted! Welcome Waseem Bhai.");
+    const email = "M50516573@gmail.com", pass = document.getElementById("adminPass").value;
+    firebase.auth().signInWithEmailAndPassword(email, pass).then(() => {
         document.getElementById("login-box").style.display = "none";
         document.getElementById("admin-dashboard").style.display = "block";
-        startApp(); // Data load karna shuru karein
-    })
-    .catch((error) => {
-        alert("Wrong Password or Access Error: " + error.message);
-    });
+        startApp();
+    }).catch(e => alert("Error: " + e.message));
 }
 
-// Function to load all data
 function startApp() {
-    // Load Deposits
-    db.ref('requests').orderByChild('type').equalTo('deposit').on('value', snap => {
+    // 1. Stats Monitor
+    db.ref('adminStats/profit').on('value', s => {
+        document.getElementById('sProfit').innerText = "Rs " + (s.val() || 0).toFixed(2);
+    });
+
+    // 2. Bet History
+    db.ref('betHistory').limitToLast(10).on('value', snap => {
         let html = "";
+        snap.forEach(child => {
+            const b = child.val();
+            const time = new Date(b.time).toLocaleTimeString();
+            html = `<tr><td>${b.email}</td><td>Rs ${b.amount}</td><td><span class="badge bg-win">BET PLACED</span></td><td>${time}</td></tr>` + html;
+        });
+        document.getElementById('betList').innerHTML = html || "<tr><td colspan='4'>No recent bets</td></tr>";
+    });
+
+    // 3. Deposits
+    db.ref('requests').orderByChild('type').equalTo('deposit').on('value', snap => {
+        let html = "", count = 0;
         snap.forEach(child => {
             const r = child.val();
             if(r.status === 'pending') {
-                html += `<tr>
-                    <td style="color:var(--blue)">${r.email || 'N/A'}</td>
-                    <td>Rs ${r.amount}</td>
-                    <td style="color:var(--gold)">${r.tid}</td>
-                    <td>
-                        <button class="btn btn-app" onclick="approveDep('${child.key}', '${r.uid}', ${r.amount})">APPROVE</button>
-                        <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJECT</button>
-                    </td>
-                </tr>`;
+                count++;
+                html += `<tr><td>${r.email}</td><td style="color:var(--win)">Rs ${r.amount}</td><td style="color:var(--gold)">${r.tid}</td><td>
+                    <button class="btn btn-app" onclick="approveDep('${child.key}', '${r.uid}', ${r.amount})">APPROVE</button>
+                    <button class="btn btn-rej" onclick="updateStatus('${child.key}', 'rejected')">REJECT</button></td></tr>`;
             }
         });
-        document.getElementById('depList').innerHTML = html || "<tr><td colspan='4'>No pending deposits</td></tr>";
+        document.getElementById('depList').innerHTML = html || "<tr><td colspan='4'>Clear! No pending deposits</td></tr>";
+        document.getElementById('sDeps').innerText = count;
     });
 
-    // Load Withdrawals
+    // 4. Withdrawals
     db.ref('requests').orderByChild('type').equalTo('withdraw').on('value', snap => {
         let html = "";
         snap.forEach(child => {
             const r = child.val();
             if(r.status === 'pending') {
-                html += `<tr>
-                    <td style="color:var(--blue)">${r.email || 'N/A'}</td>
-                    <td>Rs ${r.amount}</td>
-                    <td>${r.number}</td>
-                    <td>
-                        <button class="btn btn-app" onclick="updateStatus('${child.key}', 'paid')">PAID</button>
-                        <button class="btn btn-rej" onclick="refundWit('${child.key}', '${r.uid}', ${r.amount})">REJECT</button>
-                    </td>
-                </tr>`;
+                html += `<tr><td>${r.email}</td><td style="color:var(--red)">Rs ${r.amount}</td><td>${r.number}</td><td>
+                    <button class="btn btn-set" onclick="updateStatus('${child.key}', 'paid')">MARK PAID</button>
+                    <button class="btn btn-rej" onclick="refundWit('${child.key}', '${r.uid}', ${r.amount})">REFUND/REJ</button></td></tr>`;
             }
         });
         document.getElementById('witList').innerHTML = html || "<tr><td colspan='4'>No pending withdrawals</td></tr>";
     });
 
-    // Load Users
+    // 5. User List
     db.ref('users').on('value', snap => {
-        let html = "";
-        let count = 0;
+        let html = "", count = 0;
         snap.forEach(child => {
-            count++;
-            const u = child.val();
-            html += `<tr>
-                <td>${u.email}</td>
-                <td style="color:var(--win)">Rs ${u.balance.toFixed(2)}</td>
-                <td><input type="number" id="newBal_${child.key}" placeholder="0"></td>
-                <td><button class="btn btn-set" onclick="setBalance('${child.key}')">SET</button></td>
-            </tr>`;
+            count++; const u = child.val();
+            const wagerDone = u.wager || 0;
+            const wagerColor = wagerDone >= 5000 ? 'var(--win)' : '#888';
+            html += `<tr><td>${u.email}</td><td style="color:var(--win)">Rs ${u.balance.toFixed(2)}</td><td style="color:${wagerColor}">${wagerDone.toFixed(0)}</td>
+                <td style="color:var(--gold)">${u.myCode || '-'}</td><td>${u.referrals || 0}</td>
+                <td><input type="number" id="nb_${child.key}" placeholder="0"></td>
+                <td><button class="btn btn-set" onclick="setBalance('${child.key}')">SET</button></td></tr>`;
         });
         document.getElementById('userList').innerHTML = html;
-        document.getElementById('stats').innerText = "Users: " + count;
+        document.getElementById('sUsers').innerText = count;
     });
 }
 
-// Admin Actions
-function approveDep(key, uid, amt) {
-    db.ref('users/' + uid + '/balance').transaction(current => (current || 0) + parseFloat(amt));
-    db.ref('requests/' + key).update({status: 'approved'});
-    alert("Deposit Approved!");
+// Functions
+function approveDep(k, u, a) {
+    db.ref('users/' + u + '/balance').transaction(c => (c || 0) + parseFloat(a));
+    db.ref('requests/' + k).update({status: 'approved'});
+    alert("Approved!");
 }
-
-function updateStatus(key, status) {
-    db.ref('requests/' + key).update({status: status});
-    alert("Status Updated to " + status);
+function refundWit(k, u, a) {
+    db.ref('users/' + u + '/balance').transaction(c => (c || 0) + parseFloat(a));
+    db.ref('requests/' + k).update({status: 'rejected'});
+    alert("Refunded & Rejected!");
 }
-
-function refundWit(key, uid, amt) {
-    db.ref('users/' + uid + '/balance').transaction(current => (current || 0) + parseFloat(amt));
-    db.ref('requests/' + key).update({status: 'rejected'});
-    alert("Withdraw Rejected & Refunded!");
-}
-
-function rejectReq(key) {
-    db.ref('requests/' + key).update({status: 'rejected'});
-    alert("Rejected!");
-}
-
-function setBalance(uid) {
-    const val = document.getElementById('newBal_' + uid).value;
-    if(val === "") return;
-    db.ref('users/' + uid).update({balance: parseFloat(val)});
+function updateStatus(k, s) { db.ref('requests/' + k).update({status: s}); alert("Updated!"); }
+function setBalance(u) {
+    const v = document.getElementById('nb_' + u).value;
+    if(!v) return;
+    db.ref('users/' + u).update({balance: parseFloat(v)});
     alert("Balance Updated!");
 }
 </script>
