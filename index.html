@@ -38,12 +38,12 @@
 <div id="admin-dashboard" style="display: none;">
     <div class="header">
         <div><h1>MASTER ADMIN</h1><small>Auto-Verify Active ✅</small></div>
-        <div id="stats">Checking Status...</div>
+        <div id="stats">System Online</div>
     </div>
 
     <div class="section" style="border-color: var(--win);">
         <h2>Auto-Verify System (Latest SMS)</h2>
-        <div id="latestSms" style="font-family: monospace; font-size: 11px; color: var(--gold);">Waiting for SMS via MacroDroid...</div>
+        <div id="latestSms" style="font-family: monospace; font-size: 11px; color: var(--gold);">Waiting for SMS...</div>
     </div>
 
     <div class="section">
@@ -70,7 +70,7 @@ const conf = {
 };
 firebase.initializeApp(conf);
 const db = firebase.database();
-let verifiedTids = {};
+let verifiedTids = [];
 
 function loginAdmin() {
     const e = "M50516573@gmail.com", p = document.getElementById("adminPass").value;
@@ -82,30 +82,34 @@ function loginAdmin() {
 }
 
 function startApp() {
-    // Stats Update (Loading hatane ke liye)
-    db.ref('users').on('value', s => {
-        const count = s.numChildren() || 0;
-        document.getElementById('stats').innerText = "Total Users: " + count;
-    });
+    // Stats aur Loading fix
+    document.getElementById('stats').innerText = "Database Connected";
 
-    // 1. Listen for Verified TIDs from MacroDroid
+    // 1. Get SMS Data
     db.ref('verified_tids').on('value', snap => {
-        verifiedTids = snap.val() || {};
-        const allMsgs = Object.values(verifiedTids);
-        if(allMsgs.length > 0) {
-            const lastEntry = allMsgs[allMsgs.length - 1];
-            document.getElementById('latestSms').innerText = "Last Received: " + lastEntry.tid;
+        const data = snap.val();
+        verifiedTids = data ? Object.values(data) : [];
+        if(verifiedTids.length > 0) {
+            const last = verifiedTids[verifiedTids.length - 1];
+            document.getElementById('latestSms').innerText = "Last TID in DB: " + (last.tid || "Unknown");
         }
+        updateUI(); // Jab bhi SMS aaye, UI update karo
     });
 
-    // 2. Listen for Deposit Requests
-    db.ref('requests').orderByChild('type').equalTo('deposit').on('value', snap => {
+    // 2. Get Requests
+    db.ref('requests').on('value', snap => {
+        updateUI(); // Jab bhi naya deposit aaye, UI update karo
+    });
+}
+
+function updateUI() {
+    db.ref('requests').orderByChild('type').equalTo('deposit').once('value', snap => {
         let html = "";
         snap.forEach(child => {
             const r = child.val();
             if(r.status === 'pending') {
-                // Improved Matching Logic
-                let isMatch = Object.values(verifiedTids).some(v => v.tid && v.tid.includes(r.tid));
+                // TID Match Check
+                let isMatch = verifiedTids.some(v => v.tid && v.tid.toString().includes(r.tid.toString()));
                 
                 if(isMatch) {
                     approveDep(child.key, r.uid, r.amount, true);
@@ -130,13 +134,11 @@ function startApp() {
 function approveDep(key, uid, amt, auto = false) {
     db.ref('users/' + uid + '/balance').transaction(c => (c || 0) + parseFloat(amt));
     db.ref('requests/' + key).update({status: 'approved'});
-    if(!auto) alert("Manual Approval Done!");
+    if(!auto) alert("Manual Approved!");
 }
 
 function rejectReq(key) { 
-    if(confirm("Reject this request?")) {
-        db.ref('requests/' + key).update({status: 'rejected'}); 
-    }
+    if(confirm("Reject?")) db.ref('requests/' + key).update({status: 'rejected'}); 
 }
 </script>
 </body>
