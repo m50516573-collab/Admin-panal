@@ -3,160 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin - Full Control VIP</title>
+    <title>PAK AVIATOR CONTROL CENTER</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        :root { --red: #ff4d4d; --bg: #0f1015; --card: #1b1c21; --win: #00c853; --gold: #ffd600; --blue: #2979ff; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 15px; }
-        .section { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h2 { color: var(--gold); font-size: 18px; text-transform: uppercase; margin-bottom: 20px; border-left: 5px solid var(--gold); padding-left: 15px; }
+        body { background: #121212; color: white; font-family: sans-serif; padding: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #ffcc00; }
+        .live-box { background: black; color: #00ff00; padding: 15px; border-radius: 5px; border: 1px dashed #00ff00; font-family: monospace; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; color: #aaa; padding: 12px; border-bottom: 2px solid #333; font-size: 13px; }
-        td { padding: 12px; border-bottom: 1px solid #222; font-size: 14px; }
-        .btn { padding: 8px 15px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; }
-        .btn-app { background: var(--win); }
-        .btn-rej { background: var(--red); }
-        .btn-edit { background: var(--blue); }
-        .btn:hover { opacity: 0.8; transform: scale(1.05); }
-        input.bal-input { background: #000; border: 1px solid #555; color: #00ff00; padding: 8px; border-radius: 5px; width: 80px; font-weight: bold; }
-        .status-msg { font-weight: bold; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #ffcc00; }
+        .btn { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; margin-right: 5px; }
+        .btn-app { background: #00ff00; color: black; }
+        .btn-rej { background: #ff4444; color: white; }
+        .matched { color: #00ff00; font-weight: bold; }
+        .checking { color: #888; }
     </style>
 </head>
 <body>
 
-<div id="admin-dashboard">
-    <h1 style="text-align:center; color:var(--gold);">PAK AVIATOR CONTROL CENTER</h1>
-    
-    <div class="section">
-        <h2>Live SMS Data</h2>
-        <div id="last-sms" style="background:#000; padding:15px; border-radius:8px; border:1px dashed var(--win); color:var(--win); font-family:monospace;">
-            Waiting for real-time data...
-        </div>
+    <h2>PAK AVIATOR CONTROL CENTER</h2>
+
+    <div class="card">
+        <h3>LIVE SMS DATA</h3>
+        <div id="latest-sms" class="live-box">Waiting for real-time data...</div>
     </div>
 
-    <div class="section">
-        <h2>Deposit Requests (Secure)</h2>
+    <div class="card">
+        <h3>DEPOSIT REQUESTS (SECURE)</h3>
         <table>
-            <thead><tr><th>User Gmail</th><th>Amount</th><th>TID</th><th>Security Check</th><th>Actions</th></tr></thead>
-            <tbody id="depList"></tbody>
+            <thead>
+                <tr>
+                    <th>User Gmail</th>
+                    <th>Amount</th>
+                    <th>TID</th>
+                    <th>Security Check</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="deposit-table-body">
+                </tbody>
         </table>
     </div>
 
-    <div class="section">
-        <h2>Withdrawal Requests</h2>
-        <table>
-            <thead><tr><th>User Gmail</th><th>Amount</th><th>Details</th><th>Actions</th></tr></thead>
-            <tbody id="withList"></tbody>
-        </table>
-    </div>
+    <script>
+        // 1. Firebase Config (Check your credentials)
+        const firebaseConfig = {
+            databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    <div class="section">
-        <h2>User Management (Live Killing Mode)</h2>
-        <table>
-            <thead><tr><th>Email</th><th>Live Balance</th><th>Update</th><th>Action</th></tr></thead>
-            <tbody id="userList"></tbody>
-        </table>
-    </div>
-</div>
+        // 2. Load Deposit Requests
+        const depositRef = db.ref('deposits'); 
+        depositRef.on('value', (snapshot) => {
+            const tableBody = document.getElementById('deposit-table-body');
+            tableBody.innerHTML = "";
+            const deposits = snapshot.val();
 
-<script>
-const config = { 
-    apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
-    databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
-};
-firebase.initializeApp(config);
-const db = firebase.database();
-
-function loadAllData() {
-    // Real-time SMS
-    db.ref('verified_tids').on('value', s => {
-        const data = s.val();
-        if(data) {
-            const last = Object.values(data).pop();
-            document.getElementById('last-sms').innerHTML = `<b>LATEST:</b> ${last.tid}`;
-        }
-        refreshTables();
-    });
-
-    // Users List
-    db.ref('users').on('value', s => {
-        let h = "";
-        s.forEach(u => {
-            const user = u.val();
-            h += `<tr>
-                <td>${user.email}</td>
-                <td><input type="number" class="bal-input" id="in-${u.key}" value="${user.balance || 0}"></td>
-                <td><button class="btn btn-edit" onclick="setBal('${u.key}')">SET BALANCE</button></td>
-                <td><button class="btn btn-rej" onclick="deleteUser('${u.key}')">BLOCK</button></td>
-            </tr>`;
+            for (let id in deposits) {
+                const req = deposits[id];
+                const row = `
+                    <tr id="row-${id}">
+                        <td>${req.email}</td>
+                        <td>Rs ${req.amount}</td>
+                        <td class="tid-cell">${req.tid}</td>
+                        <td class="status-cellChecking checking">Checking...</td>
+                        <td>
+                            <button class="btn btn-app">APP</button>
+                            <button class="btn btn-rej">REJ</button>
+                        </td>
+                    </tr>`;
+                tableBody.innerHTML += row;
+            }
+            checkMatching(); // Re-check matches when table loads
         });
-        document.getElementById('userList').innerHTML = h;
-    });
-}
 
-function refreshTables() {
-    db.ref('requests').on('value', s => {
-        let dH = "", wH = "";
-        const all = s.val() || {};
-        
-        db.ref('verified_tids').once('value', vS => {
-            const vList = [];
-            vS.forEach(v => vList.push(v.val().tid));
+        // 3. Real-time SMS Matcher (The Powerful Part)
+        const smsRef = db.ref('verified_tids');
+        smsRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            let smsContent = "";
 
-            s.forEach(item => {
-                const r = item.val();
-                if(r.status === 'pending') {
-                    if(r.type === 'deposit') {
-                        let used = Object.values(all).some(x => x.status === 'approved' && x.tid === r.tid);
-                        let match = !used && vList.some(m => m.includes(r.tid));
+            // Handle undefined/string/object
+            if (!data) {
+                smsContent = "Waiting for SMS...";
+            } else if (typeof data === 'string') {
+                smsContent = data;
+            } else {
+                smsContent = data.tid || JSON.stringify(data);
+            }
 
-                        if(match) processAction(item.key, r.uid, r.amount, 'approved', 'auto');
+            document.getElementById('latest-sms').innerText = "LATEST: " + smsContent;
+            checkMatching(smsContent);
+        });
 
-                        dH += `<tr>
-                            <td>${r.email}</td><td>Rs ${r.amount}</td><td>${r.tid}</td>
-                            <td>${used ? '<span class="status-msg btn-rej">ALREADY USED ❌</span>' : (match ? '<span class="status-msg btn-app">MATCHED ✅</span>' : 'Checking...')}</td>
-                            <td><button class="btn btn-app" onclick="processAction('${item.key}','${r.uid}',${r.amount},'approved')">APP</button>
-                            <button class="btn btn-rej" onclick="askReject('${item.key}')">REJ</button></td></tr>`;
-                    } else {
-                        wH += `<tr><td>${r.email}</td><td>Rs ${r.amount}</td><td>${r.method || 'Withdraw'}</td>
-                            <td><button class="btn btn-app" onclick="processAction('${item.key}','${r.uid}',${r.amount},'approved')">SEND</button>
-                            <button class="btn btn-rej" onclick="askReject('${item.key}')">REJ</button></td></tr>`;
-                    }
+        // 4. Match Logic Function
+        function checkMatching(incomingSMS = "") {
+            if (!incomingSMS) return;
+            
+            const rows = document.querySelectorAll('#deposit-table-body tr');
+            rows.forEach(row => {
+                const tid = row.querySelector('.tid-cell').innerText;
+                const statusBox = row.querySelector('.status-cellChecking');
+
+                if (incomingSMS.includes(tid)) {
+                    statusBox.innerHTML = "MATCHED ✅";
+                    statusBox.className = "matched";
+                    row.style.background = "rgba(0, 255, 0, 0.05)";
                 }
             });
-            document.getElementById('depList').innerHTML = dH || "<tr><td colspan='5'>No pending deposits</td></tr>";
-            document.getElementById('withList').innerHTML = wH || "<tr><td colspan='4'>No pending withdrawals</td></tr>";
-        });
-    });
-}
-
-function processAction(key, uid, amt, status, mode) {
-    if(status === 'approved') {
-        db.ref('users/'+uid+'/balance').transaction(c => (c || 0) + (mode === 'auto' || key.includes('dep') ? amt : -amt));
-    }
-    db.ref('requests/'+key).update({status: status});
-    if(mode !== 'auto') alert("Action Successful!");
-}
-
-function askReject(key) {
-    const reason = prompt("Kyun reject kar rahe hain? (User ko notification jaye ga):");
-    if(reason) {
-        db.ref('requests/'+key).update({status: 'rejected', reason: reason});
-        alert("Rejected!");
-    }
-}
-
-function setBal(uid) {
-    const val = document.getElementById('in-'+uid).value;
-    db.ref('users/'+uid).update({balance: parseFloat(val)});
-    alert("Updated!");
-}
-
-function deleteUser(uid) { if(confirm("Block this user?")) db.ref('users/'+uid).remove(); }
-
-loadAllData();
-</script>
+        }
+    </script>
 </body>
 </html>
