@@ -3,42 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin - Full VIP Security</title>
+    <title>Master Admin - Full Control VIP</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        :root { --red: #ea0606; --bg: #0f1015; --card: #1b1c21; --win: #28a745; --gold: #f2a900; --blue: #34b4ff; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; }
-        .section { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
-        h2 { color: var(--gold); font-size: 16px; text-transform: uppercase; margin-bottom: 15px; border-left: 4px solid var(--gold); padding-left: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th { text-align: left; color: #888; padding: 10px; border-bottom: 1px solid #333; }
-        td { padding: 10px; border-bottom: 1px solid #222; }
-        .btn { padding: 6px 10px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; font-size: 10px; margin: 2px; }
+        :root { --red: #ff4d4d; --bg: #0f1015; --card: #1b1c21; --win: #00c853; --gold: #ffd600; --blue: #2979ff; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 15px; }
+        .section { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h2 { color: var(--gold); font-size: 18px; text-transform: uppercase; margin-bottom: 20px; border-left: 5px solid var(--gold); padding-left: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: #aaa; padding: 12px; border-bottom: 2px solid #333; font-size: 13px; }
+        td { padding: 12px; border-bottom: 1px solid #222; font-size: 14px; }
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; }
         .btn-app { background: var(--win); }
         .btn-rej { background: var(--red); }
         .btn-edit { background: var(--blue); }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 5px; border-radius: 4px; width: 60px; }
-        .badge { padding: 2px 5px; border-radius: 4px; font-size: 9px; }
+        .btn:hover { opacity: 0.8; transform: scale(1.05); }
+        input.bal-input { background: #000; border: 1px solid #555; color: #00ff00; padding: 8px; border-radius: 5px; width: 80px; font-weight: bold; }
+        .status-msg { font-weight: bold; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
     </style>
 </head>
 <body>
 
 <div id="admin-dashboard">
-    <div class="header">
-        <h1>MASTER ADMIN <small style="font-size:10px; color:var(--win)">● Database Connected</small></h1>
+    <h1 style="text-align:center; color:var(--gold);">PAK AVIATOR CONTROL CENTER</h1>
+    
+    <div class="section">
+        <h2>Live SMS Data</h2>
+        <div id="last-sms" style="background:#000; padding:15px; border-radius:8px; border:1px dashed var(--win); color:var(--win); font-family:monospace;">
+            Waiting for real-time data...
+        </div>
     </div>
 
     <div class="section">
-        <h2>Auto-Verify (Latest SMS)</h2>
-        <div id="last-sms" style="font-size:11px; color:var(--win); background:#000; padding:10px; border-radius:5px;">Waiting for SMS...</div>
-    </div>
-
-    <div class="section">
-        <h2>Deposit Requests (Anti-Fraud)</h2>
+        <h2>Deposit Requests (Secure)</h2>
         <table>
-            <thead><tr><th>Gmail</th><th>Amount</th><th>TID</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>User Gmail</th><th>Amount</th><th>TID</th><th>Security Check</th><th>Actions</th></tr></thead>
             <tbody id="depList"></tbody>
         </table>
     </div>
@@ -46,106 +47,116 @@
     <div class="section">
         <h2>Withdrawal Requests</h2>
         <table>
-            <thead><tr><th>Gmail</th><th>Amount</th><th>Method/No</th><th>Actions</th></tr></thead>
+            <thead><tr><th>User Gmail</th><th>Amount</th><th>Details</th><th>Actions</th></tr></thead>
             <tbody id="withList"></tbody>
         </table>
     </div>
 
     <div class="section">
-        <h2>User Management (Live Balance)</h2>
+        <h2>User Management (Live Killing Mode)</h2>
         <table>
-            <thead><tr><th>Email</th><th>Balance</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Email</th><th>Live Balance</th><th>Update</th><th>Action</th></tr></thead>
             <tbody id="userList"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-const conf = { 
+const config = { 
     apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
     databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
 };
-firebase.initializeApp(conf);
+firebase.initializeApp(config);
 const db = firebase.database();
 
-// 1. Fetch Verified TIDs & SMS
-db.ref('verified_tids').on('value', snap => {
-    const data = snap.val();
-    if(data) {
-        const last = Object.values(data).pop();
-        document.getElementById('last-sms').innerText = "Last Received: " + last.tid;
-    }
-    loadData();
-});
+function loadAllData() {
+    // Real-time SMS
+    db.ref('verified_tids').on('value', s => {
+        const data = s.val();
+        if(data) {
+            const last = Object.values(data).pop();
+            document.getElementById('last-sms').innerHTML = `<b>LATEST:</b> ${last.tid}`;
+        }
+        refreshTables();
+    });
 
-function loadData() {
-    // 2. Deposit Logic with Security
-    db.ref('requests').on('value', snap => {
-        let depHtml = "", withHtml = "";
-        const allReqs = snap.val() || {};
-        const verifiedData = [];
+    // Users List
+    db.ref('users').on('value', s => {
+        let h = "";
+        s.forEach(u => {
+            const user = u.val();
+            h += `<tr>
+                <td>${user.email}</td>
+                <td><input type="number" class="bal-input" id="in-${u.key}" value="${user.balance || 0}"></td>
+                <td><button class="btn btn-edit" onclick="setBal('${u.key}')">SET BALANCE</button></td>
+                <td><button class="btn btn-rej" onclick="deleteUser('${u.key}')">BLOCK</button></td>
+            </tr>`;
+        });
+        document.getElementById('userList').innerHTML = h;
+    });
+}
+
+function refreshTables() {
+    db.ref('requests').on('value', s => {
+        let dH = "", wH = "";
+        const all = s.val() || {};
         
-        db.ref('verified_tids').once('value', vSnap => {
-            vSnap.forEach(v => verifiedData.push(v.val().tid));
+        db.ref('verified_tids').once('value', vS => {
+            const vList = [];
+            vS.forEach(v => vList.push(v.val().tid));
 
-            snap.forEach(child => {
-                const r = child.val();
+            s.forEach(item => {
+                const r = item.val();
                 if(r.status === 'pending') {
                     if(r.type === 'deposit') {
-                        let isUsed = Object.values(allReqs).some(old => old.status === 'approved' && old.tid === r.tid);
-                        let isMatch = !isUsed && verifiedData.some(msg => msg.includes(r.tid));
-                        
-                        if(isMatch) approveReq(child.key, r.uid, r.amount, 'deposit', true);
+                        let used = Object.values(all).some(x => x.status === 'approved' && x.tid === r.tid);
+                        let match = !used && vList.some(m => m.includes(r.tid));
 
-                        depHtml += `<tr>
+                        if(match) processAction(item.key, r.uid, r.amount, 'approved', 'auto');
+
+                        dH += `<tr>
                             <td>${r.email}</td><td>Rs ${r.amount}</td><td>${r.tid}</td>
-                            <td>${isUsed ? '<b style="color:red">USED ❌</b>' : (isMatch ? '<b style="color:green">MATCHED ✅</b>' : 'Checking...')}</td>
-                            <td><button class="btn btn-app" onclick="approveReq('${child.key}','${r.uid}',${r.amount},'deposit')">APP</button>
-                            <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJ</button></td></tr>`;
+                            <td>${used ? '<span class="status-msg btn-rej">ALREADY USED ❌</span>' : (match ? '<span class="status-msg btn-app">MATCHED ✅</span>' : 'Checking...')}</td>
+                            <td><button class="btn btn-app" onclick="processAction('${item.key}','${r.uid}',${r.amount},'approved')">APP</button>
+                            <button class="btn btn-rej" onclick="askReject('${item.key}')">REJ</button></td></tr>`;
                     } else {
-                        withHtml += `<tr><td>${r.email}</td><td>Rs ${r.amount}</td><td>${r.method || 'N/A'}</td>
-                            <td><button class="btn btn-app" onclick="approveReq('${child.key}','${r.uid}',${r.amount},'withdraw')">APP</button>
-                            <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJ</button></td></tr>`;
+                        wH += `<tr><td>${r.email}</td><td>Rs ${r.amount}</td><td>${r.method || 'Withdraw'}</td>
+                            <td><button class="btn btn-app" onclick="processAction('${item.key}','${r.uid}',${r.amount},'approved')">SEND</button>
+                            <button class="btn btn-rej" onclick="askReject('${item.key}')">REJ</button></td></tr>`;
                     }
                 }
             });
-            document.getElementById('depList').innerHTML = depHtml;
-            document.getElementById('withList').innerHTML = withHtml;
+            document.getElementById('depList').innerHTML = dH || "<tr><td colspan='5'>No pending deposits</td></tr>";
+            document.getElementById('withList').innerHTML = wH || "<tr><td colspan='4'>No pending withdrawals</td></tr>";
         });
-    });
-
-    // 3. User Management (Edit Balance)
-    db.ref('users').on('value', snap => {
-        let html = "";
-        snap.forEach(child => {
-            const u = child.val();
-            html += `<tr><td>${u.email}</td>
-                <td><input type="number" id="bal-${child.key}" value="${u.balance || 0}"></td>
-                <td><button class="btn btn-edit" onclick="updateBal('${child.key}')">SAVE</button></td></tr>`;
-        });
-        document.getElementById('userList').innerHTML = html;
     });
 }
 
-function approveReq(key, uid, amt, type, auto = false) {
-    if(type === 'deposit') db.ref('users/'+uid+'/balance').transaction(c => (c || 0) + amt);
-    db.ref('requests/'+key).update({status: 'approved'});
-    if(!auto) alert("Approved!");
+function processAction(key, uid, amt, status, mode) {
+    if(status === 'approved') {
+        db.ref('users/'+uid+'/balance').transaction(c => (c || 0) + (mode === 'auto' || key.includes('dep') ? amt : -amt));
+    }
+    db.ref('requests/'+key).update({status: status});
+    if(mode !== 'auto') alert("Action Successful!");
 }
 
-function rejectReq(key) {
-    let reason = prompt("Enter Rejection Reason:");
+function askReject(key) {
+    const reason = prompt("Kyun reject kar rahe hain? (User ko notification jaye ga):");
     if(reason) {
         db.ref('requests/'+key).update({status: 'rejected', reason: reason});
-        alert("Rejected with reason sent to user.");
+        alert("Rejected!");
     }
 }
 
-function updateBal(uid) {
-    let newBal = document.getElementById('bal-'+uid).value;
-    db.ref('users/'+uid).update({balance: parseFloat(newBal)});
-    alert("Balance Updated!");
+function setBal(uid) {
+    const val = document.getElementById('in-'+uid).value;
+    db.ref('users/'+uid).update({balance: parseFloat(val)});
+    alert("Updated!");
 }
+
+function deleteUser(uid) { if(confirm("Block this user?")) db.ref('users/'+uid).remove(); }
+
+loadAllData();
 </script>
 </body>
 </html>
