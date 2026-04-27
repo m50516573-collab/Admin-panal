@@ -24,6 +24,23 @@
     </style>
 </head>
 <body>
+// Firebase Login Function
+function loginAdmin() {
+    const email = "M50516573@gmail.com";
+    const pass = "CoDe$$$0351000";
+
+    firebase.auth().signInWithEmailAndPassword(email, pass)
+    .then((userCredential) => {
+        alert("VIP Access Granted! Welcome Waseem Bhai.");
+        document.getElementById("login-box").style.display = "none";
+        document.getElementById("admin-dashboard").style.display = "block";
+        // Yahan aapka data load karne wala function call hoga
+        loadDashboardData(); 
+    })
+    .catch((error) => {
+        alert("Error: " + error.message);
+    });
+}
 
 <div class="header">
     <div><h1>MASTER ADMIN</h1><small>Aviator Project Control</small></div>
