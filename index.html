@@ -22,7 +22,6 @@
         .btn { padding: 8px 12px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; font-size: 10px; }
         .btn-app { background: var(--win); }
         .btn-rej { background: var(--red); }
-        .btn-set { background: var(--blue); }
         .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
         .auto-found { background: var(--win); color: white; }
     </style>
@@ -39,12 +38,12 @@
 <div id="admin-dashboard" style="display: none;">
     <div class="header">
         <div><h1>MASTER ADMIN</h1><small>Auto-Verify Active ✅</small></div>
-        <div id="stats">Loading...</div>
+        <div id="stats">Checking Status...</div>
     </div>
 
     <div class="section" style="border-color: var(--win);">
         <h2>Auto-Verify System (Latest SMS)</h2>
-        <div id="latestSms" style="font-family: monospace; font-size: 11px; color: #888;">Waiting for SMS via MacroDroid...</div>
+        <div id="latestSms" style="font-family: monospace; font-size: 11px; color: var(--gold);">Waiting for SMS via MacroDroid...</div>
     </div>
 
     <div class="section">
@@ -62,20 +61,13 @@
             <tbody id="depList"></tbody>
         </table>
     </div>
-
-    <div class="section">
-        <h2>Withdrawals</h2>
-        <table id="witList"></table>
-    </div>
-
-    <div class="section">
-        <h2>User Management</h2>
-        <table id="userList"></table>
-    </div>
 </div>
 
 <script>
-const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
+const conf = { 
+    apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
+    databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
+};
 firebase.initializeApp(conf);
 const db = firebase.database();
 let verifiedTids = {};
@@ -90,11 +82,20 @@ function loginAdmin() {
 }
 
 function startApp() {
+    // Stats Update (Loading hatane ke liye)
+    db.ref('users').on('value', s => {
+        const count = s.numChildren() || 0;
+        document.getElementById('stats').innerText = "Total Users: " + count;
+    });
+
     // 1. Listen for Verified TIDs from MacroDroid
     db.ref('verified_tids').on('value', snap => {
         verifiedTids = snap.val() || {};
-        const lastTid = Object.values(verifiedTids).pop();
-        if(lastTid) document.getElementById('latestSms').innerText = "Last Verified TID: " + lastTid.tid;
+        const allMsgs = Object.values(verifiedTids);
+        if(allMsgs.length > 0) {
+            const lastEntry = allMsgs[allMsgs.length - 1];
+            document.getElementById('latestSms').innerText = "Last Received: " + lastEntry.tid;
+        }
     });
 
     // 2. Listen for Deposit Requests
@@ -103,11 +104,10 @@ function startApp() {
         snap.forEach(child => {
             const r = child.val();
             if(r.status === 'pending') {
-                // Auto Match Logic
-                let isMatch = Object.values(verifiedTids).some(v => v.tid.includes(r.tid));
+                // Improved Matching Logic
+                let isMatch = Object.values(verifiedTids).some(v => v.tid && v.tid.includes(r.tid));
                 
                 if(isMatch) {
-                    // AUTO APPROVE IF MATCHED
                     approveDep(child.key, r.uid, r.amount, true);
                 }
 
@@ -115,7 +115,7 @@ function startApp() {
                     <td>${r.email}</td>
                     <td>Rs ${r.amount}</td>
                     <td style="color:var(--gold)">${r.tid}</td>
-                    <td>${isMatch ? '<span class="status-badge auto-found">MATCHED</span>' : 'Checking...'}</td>
+                    <td>${isMatch ? '<span class="status-badge auto-found">MATCHED ✅</span>' : 'Checking...'}</td>
                     <td>
                         <button class="btn btn-app" onclick="approveDep('${child.key}', '${r.uid}', ${r.amount})">APPROVE</button>
                         <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJECT</button>
@@ -123,12 +123,8 @@ function startApp() {
                 </tr>`;
             }
         });
-        document.getElementById('depList').innerHTML = html || "<tr><td colspan='5'>No pending deposits</td></tr>";
+        document.getElementById('depList').innerHTML = html || "<tr><td colspan='5' style='text-align:center;'>No pending deposits</td></tr>";
     });
-
-    // Withdrawal & User Logic (Shortened for space but included)
-    db.ref('requests').orderByChild('type').equalTo('withdraw').on('value', s => { /* logic same as before */ });
-    db.ref('users').on('value', s => { /* logic same as before */ });
 }
 
 function approveDep(key, uid, amt, auto = false) {
@@ -137,7 +133,11 @@ function approveDep(key, uid, amt, auto = false) {
     if(!auto) alert("Manual Approval Done!");
 }
 
-function rejectReq(key) { db.ref('requests/' + key).update({status: 'rejected'}); }
+function rejectReq(key) { 
+    if(confirm("Reject this request?")) {
+        db.ref('requests/' + key).update({status: 'rejected'}); 
+    }
+}
 </script>
 </body>
 </html>
