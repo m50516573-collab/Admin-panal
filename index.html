@@ -3,42 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviator Admin - Muhammad Shop</title>
+    <title>Master Admin - Aviator Project</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #0a0b10; color: white; margin: 0; padding: 15px; }
-        .head-bar { background: #16171d; padding: 15px; border-radius: 12px; margin-bottom: 20px; border-bottom: 3px solid #28a745; display: flex; justify-content: space-between; align-items: center; }
-        .card { background: #111; border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; overflow-x: auto; }
-        h2 { color: #f2a900; font-size: 16px; margin-top: 0; text-transform: uppercase; }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; font-size: 13px; }
-        th { background: #1a1a1a; color: #888; }
-        .btn { padding: 10px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; }
-        .btn-ok { background: #28a745; color: white; margin-bottom: 5px; }
-        .btn-rej { background: #ea0606; color: white; }
-        .btn-upd { background: #34b4ff; color: white; }
-        input { background: #000; border: 1px solid #444; color: white; padding: 8px; border-radius: 5px; width: 80px; }
-        .badge { background: #28a745; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+        :root { --red: #ea0606; --bg: #0f1015; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--win); padding-bottom: 10px; margin-bottom: 20px; }
+        .section { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; }
+        h2 { color: var(--gold); font-size: 18px; text-transform: uppercase; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th { text-align: left; color: #888; padding: 12px; border-bottom: 1px solid #333; }
+        td { padding: 12px; border-bottom: 1px solid #222; }
+        .btn { padding: 8px 15px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .btn-app { background: var(--win); margin-right: 5px; }
+        .btn-rej { background: var(--red); }
+        .btn-set { background: var(--blue); }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; width: 80px; }
     </style>
 </head>
 <body>
 
-<div class="head-bar">
-    <div>
-        <h1 style="margin:0; font-size:18px;">MASTER ADMIN</h1>
-        <small style="color:#888;">Aviator Project Control</small>
-    </div>
-    <div>Users: <span class="badge" id="uCount">0</span></div>
+<div class="header">
+    <div><h1>MASTER ADMIN</h1><small>Aviator Project Control</small></div>
+    <div id="stats">Users: Loading...</div>
 </div>
 
-<div class="card">
+<div class="section">
     <h2>Deposit Requests (Check TID)</h2>
-    <table id="depTable">
+    <table>
         <thead>
             <tr>
-                <th>User (ID)</th>
+                <th>User Gmail</th>
                 <th>Amount</th>
                 <th>TID (JazzCash)</th>
                 <th>Actions</th>
@@ -48,12 +45,12 @@
     </table>
 </div>
 
-<div class="card">
+<div class="section">
     <h2>Withdrawal Requests</h2>
-    <table id="witTable">
+    <table>
         <thead>
             <tr>
-                <th>User (ID)</th>
+                <th>User Gmail</th>
                 <th>Amount</th>
                 <th>Account</th>
                 <th>Actions</th>
@@ -63,13 +60,13 @@
     </table>
 </div>
 
-<div class="card">
-    <h2>User Management</h2>
+<div class="section">
+    <h2>User Management (Edit Balance)</h2>
     <table>
         <thead>
             <tr>
-                <th>Email / ID</th>
-                <th>Balance</th>
+                <th>User Gmail</th>
+                <th>Current Bal</th>
                 <th>Set New</th>
                 <th>Action</th>
             </tr>
@@ -79,95 +76,96 @@
 </div>
 
 <script>
-// Firebase Config
-const conf = { 
-    apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
-    databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
-};
+const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
 firebase.initializeApp(conf);
 const db = firebase.database();
 
-function loadAll() {
-    // Deposits & Withdrawals Sync
-    db.ref('requests').on('value', s => {
-        let dHtml = '', wHtml = '';
-        s.forEach(c => {
-            const r = c.val();
-            if(r.status === 'pending') {
-                if(r.type === 'deposit') {
-                    // Yahan r.tid check kiya agar na ho to 'N/A' dikhaye
-                    dHtml += `<tr>
-                        <td>${r.uid ? r.uid.substr(0,8) : 'Unknown'}</td>
-                        <td>Rs ${r.amount}</td>
-                        <td style="color:#f2a900; font-weight:bold;">${r.tid || 'No TID'}</td>
-                        <td>
-                            <button class="btn btn-ok" onclick="apprDep('${c.key}','${r.uid}',${r.amount})">APPROVE</button>
-                            <button class="btn btn-rej" onclick="rej('${c.key}')">REJECT</button>
-                        </td>
-                    </tr>`;
-                } else {
-                    wHtml += `<tr>
-                        <td>${r.uid ? r.uid.substr(0,8) : 'Unknown'}</td>
-                        <td>Rs ${r.amount}</td>
-                        <td>${r.number || 'No Num'}</td>
-                        <td>
-                            <button class="btn btn-ok" onclick="apprWit('${c.key}')">PAID</button>
-                            <button class="btn btn-rej" onclick="rej('${c.key}')">REJECT</button>
-                        </td>
-                    </tr>`;
-                }
-            }
-        });
-        document.getElementById('depList').innerHTML = dHtml || '<tr><td colspan="4">No pending deposits</td></tr>';
-        document.getElementById('witList').innerHTML = wHtml || '<tr><td colspan="4">No pending withdrawals</td></tr>';
-    });
-
-    // Users List Sync
-    db.ref('users').on('value', s => {
-        let uHtml = '';
-        let count = 0;
-        s.forEach(c => {
-            const u = c.val();
-            count++;
-            // Email dikhane ki koshish, warna ID
-            const name = u.email || "ID: " + c.key.substr(0,8);
-            uHtml += `<tr>
-                <td style="font-size:11px;">${name}</td>
-                <td style="color:#28a745; font-weight:bold;">Rs ${u.balance ? u.balance.toFixed(2) : '0.00'}</td>
-                <td><input type="number" id="inp_${c.key}" placeholder="0"></td>
-                <td><button class="btn btn-upd" onclick="upd('${c.key}')">SET</button></td>
+// Load Deposits
+db.ref('requests').orderByChild('type').equalTo('deposit').on('value', snap => {
+    let html = "";
+    snap.forEach(child => {
+        const r = child.val();
+        if(r.status === 'pending') {
+            html += `<tr>
+                <td style="color:var(--blue)">${r.email || 'N/A'}</td>
+                <td>Rs ${r.amount}</td>
+                <td style="color:var(--gold)">${r.tid}</td>
+                <td>
+                    <button class="btn btn-app" onclick="approveDep('${child.key}', '${r.uid}', ${r.amount})">APPROVE</button>
+                    <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJECT</button>
+                </td>
             </tr>`;
-        });
-        document.getElementById('userList').innerHTML = uHtml;
-        document.getElementById('uCount').innerText = count;
+        }
     });
+    document.getElementById('depList').innerHTML = html || "<tr><td colspan='4'>No pending deposits</td></tr>";
+});
+
+// Load Withdrawals
+db.ref('requests').orderByChild('type').equalTo('withdraw').on('value', snap => {
+    let html = "";
+    snap.forEach(child => {
+        const r = child.val();
+        if(r.status === 'pending') {
+            html += `<tr>
+                <td style="color:var(--blue)">${r.email || 'N/A'}</td>
+                <td>Rs ${r.amount}</td>
+                <td>${r.number}</td>
+                <td>
+                    <button class="btn btn-app" onclick="updateStatus('${child.key}', 'paid')">PAID</button>
+                    <button class="btn btn-rej" onclick="refundWit('${child.key}', '${r.uid}', ${r.amount})">REJECT</button>
+                </td>
+            </tr>`;
+        }
+    });
+    document.getElementById('witList').innerHTML = html || "<tr><td colspan='4'>No pending withdrawals</td></tr>";
+});
+
+// Load Users
+db.ref('users').on('value', snap => {
+    let html = "";
+    let count = 0;
+    snap.forEach(child => {
+        count++;
+        const u = child.val();
+        html += `<tr>
+            <td>${u.email}</td>
+            <td style="color:var(--win)">Rs ${u.balance.toFixed(2)}</td>
+            <td><input type="number" id="newBal_${child.key}" placeholder="0"></td>
+            <td><button class="btn btn-set" onclick="setBalance('${child.key}')">SET</button></td>
+        </tr>`;
+    });
+    document.getElementById('userList').innerHTML = html;
+    document.getElementById('stats').innerText = "Users: " + count;
+});
+
+function approveDep(key, uid, amt) {
+    db.ref('users/' + uid + '/balance').transaction(current => (current || 0) + parseFloat(amt));
+    db.ref('requests/' + key).update({status: 'approved'});
+    alert("Deposit Approved!");
 }
 
-// Actions
-function apprDep(id, uid, amt) {
-    db.ref('users/'+uid+'/balance').transaction(b => (b || 0) + parseFloat(amt));
-    db.ref('requests/'+id).update({status: 'approved'});
-    alert("Deposit Added!");
+function updateStatus(key, status) {
+    db.ref('requests/' + key).update({status: status});
+    alert("Status Updated to " + status);
 }
 
-function apprWit(id) { 
-    db.ref('requests/'+id).update({status: 'completed'}); 
-    alert("Marked as Paid!");
+function refundWit(key, uid, amt) {
+    db.ref('users/' + uid + '/balance').transaction(current => (current || 0) + parseFloat(amt));
+    db.ref('requests/' + key).update({status: 'rejected'});
+    alert("Withdraw Rejected & Refunded!");
 }
 
-function rej(id) { 
-    if(confirm("Reject this request?")) db.ref('requests/'+id).remove(); 
+function rejectReq(key) {
+    db.ref('requests/' + key).update({status: 'rejected'});
+    alert("Rejected!");
 }
 
-function upd(uid) {
-    const v = document.getElementById('inp_'+uid).value;
-    if(v !== "") {
-        db.ref('users/'+uid).update({balance: parseFloat(v)});
-        alert("Balance Updated!");
-    }
+function setBalance(uid) {
+    const val = document.getElementById('newBal_' + uid).value;
+    if(val === "") return;
+    db.ref('users/' + uid).update({balance: parseFloat(val)});
+    alert("Balance Updated!");
 }
-
-loadAll();
 </script>
 </body>
 </html>
