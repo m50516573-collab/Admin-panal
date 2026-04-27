@@ -3,113 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAK AVIATOR CONTROL CENTER</title>
+    <title>PAK AVIATOR ADMIN</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; padding: 20px; }
-        .card { background: #1e1e1e; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #ffcc00; }
-        .live-box { background: black; color: #00ff00; padding: 15px; border-radius: 5px; border: 1px dashed #00ff00; font-family: monospace; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
-        th { color: #ffcc00; }
-        .btn { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; margin-right: 5px; }
-        .btn-app { background: #00ff00; color: black; }
-        .btn-rej { background: #ff4444; color: white; }
-        .matched { color: #00ff00; font-weight: bold; }
-        .checking { color: #888; }
+        body { background: #0a0a0a; color: #eee; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .card { background: #161616; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
+        .live-box { background: #000; color: #00ff00; padding: 15px; border-radius: 8px; border: 1px solid #00ff00; font-family: monospace; font-size: 1.1em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; }
+        th { color: #ffcc00; text-transform: uppercase; font-size: 0.8em; }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-app { background: #28a745; color: white; }
+        .btn-rej { background: #dc3545; color: white; }
+        .status-match { color: #00ff00; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
-    <h2>PAK AVIATOR CONTROL CENTER</h2>
+    <h2 style="color: #ffcc00;">PAK AVIATOR CONTROL CENTER</h2>
 
     <div class="card">
-        <h3>LIVE SMS DATA</h3>
-        <div id="latest-sms" class="live-box">Waiting for real-time data...</div>
+        <h3 style="margin-top:0;">LIVE SMS DATA</h3>
+        <div id="latest-sms" class="live-box">Waiting for SMS...</div>
     </div>
 
     <div class="card">
-        <h3>DEPOSIT REQUESTS (SECURE)</h3>
+        <h3>DEPOSIT REQUESTS</h3>
         <table>
             <thead>
                 <tr>
-                    <th>User Gmail</th>
+                    <th>Email</th>
                     <th>Amount</th>
                     <th>TID</th>
                     <th>Security Check</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody id="deposit-table-body">
-                </tbody>
+            <tbody id="deposit-table-body"></tbody>
         </table>
     </div>
 
     <script>
-        // 1. Firebase Config (Check your credentials)
-        const firebaseConfig = {
-            databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com"
-        };
+        // 1. Firebase Configuration
+        const firebaseConfig = { databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 2. Load Deposit Requests
-        const depositRef = db.ref('deposits'); 
-        depositRef.on('value', (snapshot) => {
-            const tableBody = document.getElementById('deposit-table-body');
-            tableBody.innerHTML = "";
-            const deposits = snapshot.val();
-
-            for (let id in deposits) {
-                const req = deposits[id];
-                const row = `
-                    <tr id="row-${id}">
-                        <td>${req.email}</td>
-                        <td>Rs ${req.amount}</td>
-                        <td class="tid-cell">${req.tid}</td>
-                        <td class="status-cellChecking checking">Checking...</td>
-                        <td>
-                            <button class="btn btn-app">APP</button>
-                            <button class="btn btn-rej">REJ</button>
-                        </td>
-                    </tr>`;
-                tableBody.innerHTML += row;
-            }
-            checkMatching(); // Re-check matches when table loads
-        });
-
-        // 3. Real-time SMS Matcher (The Powerful Part)
-        const smsRef = db.ref('verified_tids');
-        smsRef.on('value', (snapshot) => {
+        // 2. Listen for Deposits
+        db.ref('deposits').on('value', (snapshot) => {
+            const container = document.getElementById('deposit-table-body');
+            container.innerHTML = "";
             const data = snapshot.val();
-            let smsContent = "";
+            if(!data) return;
 
-            // Handle undefined/string/object
-            if (!data) {
-                smsContent = "Waiting for SMS...";
-            } else if (typeof data === 'string') {
-                smsContent = data;
-            } else {
-                smsContent = data.tid || JSON.stringify(data);
-            }
-
-            document.getElementById('latest-sms').innerText = "LATEST: " + smsContent;
-            checkMatching(smsContent);
+            Object.keys(data).forEach(id => {
+                const req = data[id];
+                const tr = document.createElement('tr');
+                tr.id = `row-${id}`;
+                tr.innerHTML = `
+                    <td>${req.email}</td>
+                    <td>Rs ${req.amount}</td>
+                    <td class="tid-val">${req.tid}</td>
+                    <td class="check-status" style="color:#888;">Checking...</td>
+                    <td>
+                        <button class="btn btn-app">APP</button>
+                        <button class="btn btn-rej">REJ</button>
+                    </td>
+                `;
+                container.appendChild(tr);
+            });
+            runAutoMatch(); 
         });
 
-        // 4. Match Logic Function
-        function checkMatching(incomingSMS = "") {
-            if (!incomingSMS) return;
+        // 3. Listen for SMS (Fixed "Undefined" Error)
+        db.ref('verified_tids').on('value', (snapshot) => {
+            const rawData = snapshot.val();
+            let smsText = "";
+
+            if (!rawData) {
+                smsText = "No data in Firebase";
+            } else if (typeof rawData === 'string') {
+                smsText = rawData; // Direct text handle
+            } else if (typeof rawData === 'object') {
+                smsText = rawData.tid || JSON.stringify(rawData); // JSON handle
+            }
+
+            document.getElementById('latest-sms').innerText = "LATEST: " + smsText;
+            runAutoMatch(smsText);
+        });
+
+        // 4. Automatic Matching Logic
+        function runAutoMatch(currentSMS = "") {
+            if (!currentSMS) {
+                currentSMS = document.getElementById('latest-sms').innerText;
+            }
             
             const rows = document.querySelectorAll('#deposit-table-body tr');
             rows.forEach(row => {
-                const tid = row.querySelector('.tid-cell').innerText;
-                const statusBox = row.querySelector('.status-cellChecking');
+                const userTID = row.querySelector('.tid-val').innerText.trim();
+                const statusCell = row.querySelector('.check-status');
 
-                if (incomingSMS.includes(tid)) {
-                    statusBox.innerHTML = "MATCHED ✅";
-                    statusBox.className = "matched";
+                if (userTID && currentSMS.includes(userTID)) {
+                    statusCell.innerHTML = "MATCHED ✅";
+                    statusCell.className = "status-match";
                     row.style.background = "rgba(0, 255, 0, 0.05)";
                 }
             });
