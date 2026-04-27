@@ -3,62 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin - Aviator Auto</title>
+    <title>Master Admin - Full VIP Security</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        :root { --red: #ea0606; --bg: #0f1015; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
-        #login-box { max-width: 400px; margin: 100px auto; background: var(--card); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid var(--gold); }
-        .login-input { width: 90%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; }
-        .login-btn { background: var(--gold); color: #000; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--win); padding-bottom: 10px; margin-bottom: 20px; }
-        .section { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; }
-        h2 { color: var(--gold); font-size: 18px; text-transform: uppercase; margin: 0 0 10px 0; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { text-align: left; color: #888; padding: 12px; border-bottom: 1px solid #333; }
-        td { padding: 12px; border-bottom: 1px solid #222; }
-        .btn { padding: 8px 12px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; font-size: 10px; }
+        :root { --red: #ea0606; --bg: #0f1015; --card: #1b1c21; --win: #28a745; --gold: #f2a900; --blue: #34b4ff; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px; }
+        .section { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
+        h2 { color: var(--gold); font-size: 16px; text-transform: uppercase; margin-bottom: 15px; border-left: 4px solid var(--gold); padding-left: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; color: #888; padding: 10px; border-bottom: 1px solid #333; }
+        td { padding: 10px; border-bottom: 1px solid #222; }
+        .btn { padding: 6px 10px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; font-size: 10px; margin: 2px; }
         .btn-app { background: var(--win); }
         .btn-rej { background: var(--red); }
-        .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
-        .auto-found { background: var(--win); color: white; }
+        .btn-edit { background: var(--blue); }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 5px; border-radius: 4px; width: 60px; }
+        .badge { padding: 2px 5px; border-radius: 4px; font-size: 9px; }
     </style>
 </head>
 <body>
 
-<div id="login-box">
-    <h2 style="color:var(--gold)">PAK AVIATOR VIP</h2>
-    <input type="email" id="adminEmail" class="login-input" value="M50516573@gmail.com" readonly>
-    <input type="password" id="adminPass" class="login-input" placeholder="Enter VIP Password">
-    <button class="login-btn" onclick="loginAdmin()">LOGIN TO DASHBOARD</button>
-</div>
-
-<div id="admin-dashboard" style="display: none;">
+<div id="admin-dashboard">
     <div class="header">
-        <div><h1>MASTER ADMIN</h1><small>Auto-Verify Active ✅</small></div>
-        <div id="stats">System Online</div>
-    </div>
-
-    <div class="section" style="border-color: var(--win);">
-        <h2>Auto-Verify System (Latest SMS)</h2>
-        <div id="latestSms" style="font-family: monospace; font-size: 11px; color: var(--gold);">Waiting for SMS...</div>
+        <h1>MASTER ADMIN <small style="font-size:10px; color:var(--win)">● Database Connected</small></h1>
     </div>
 
     <div class="section">
-        <h2>Deposit Requests</h2>
+        <h2>Auto-Verify (Latest SMS)</h2>
+        <div id="last-sms" style="font-size:11px; color:var(--win); background:#000; padding:10px; border-radius:5px;">Waiting for SMS...</div>
+    </div>
+
+    <div class="section">
+        <h2>Deposit Requests (Anti-Fraud)</h2>
         <table>
-            <thead>
-                <tr>
-                    <th>Gmail</th>
-                    <th>Amount</th>
-                    <th>TID</th>
-                    <th>Auto Check</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+            <thead><tr><th>Gmail</th><th>Amount</th><th>TID</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="depList"></tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Withdrawal Requests</h2>
+        <table>
+            <thead><tr><th>Gmail</th><th>Amount</th><th>Method/No</th><th>Actions</th></tr></thead>
+            <tbody id="withList"></tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>User Management (Live Balance)</h2>
+        <table>
+            <thead><tr><th>Email</th><th>Balance</th><th>Actions</th></tr></thead>
+            <tbody id="userList"></tbody>
         </table>
     </div>
 </div>
@@ -70,75 +67,84 @@ const conf = {
 };
 firebase.initializeApp(conf);
 const db = firebase.database();
-let verifiedTids = [];
 
-function loginAdmin() {
-    const e = "M50516573@gmail.com", p = document.getElementById("adminPass").value;
-    firebase.auth().signInWithEmailAndPassword(e, p).then(() => {
-        document.getElementById("login-box").style.display = "none";
-        document.getElementById("admin-dashboard").style.display = "block";
-        startApp();
-    }).catch(err => alert("Error: " + err.message));
-}
+// 1. Fetch Verified TIDs & SMS
+db.ref('verified_tids').on('value', snap => {
+    const data = snap.val();
+    if(data) {
+        const last = Object.values(data).pop();
+        document.getElementById('last-sms').innerText = "Last Received: " + last.tid;
+    }
+    loadData();
+});
 
-function startApp() {
-    // Stats aur Loading fix
-    document.getElementById('stats').innerText = "Database Connected";
-
-    // 1. Get SMS Data
-    db.ref('verified_tids').on('value', snap => {
-        const data = snap.val();
-        verifiedTids = data ? Object.values(data) : [];
-        if(verifiedTids.length > 0) {
-            const last = verifiedTids[verifiedTids.length - 1];
-            document.getElementById('latestSms').innerText = "Last TID in DB: " + (last.tid || "Unknown");
-        }
-        updateUI(); // Jab bhi SMS aaye, UI update karo
-    });
-
-    // 2. Get Requests
+function loadData() {
+    // 2. Deposit Logic with Security
     db.ref('requests').on('value', snap => {
-        updateUI(); // Jab bhi naya deposit aaye, UI update karo
-    });
-}
+        let depHtml = "", withHtml = "";
+        const allReqs = snap.val() || {};
+        const verifiedData = [];
+        
+        db.ref('verified_tids').once('value', vSnap => {
+            vSnap.forEach(v => verifiedData.push(v.val().tid));
 
-function updateUI() {
-    db.ref('requests').orderByChild('type').equalTo('deposit').once('value', snap => {
+            snap.forEach(child => {
+                const r = child.val();
+                if(r.status === 'pending') {
+                    if(r.type === 'deposit') {
+                        let isUsed = Object.values(allReqs).some(old => old.status === 'approved' && old.tid === r.tid);
+                        let isMatch = !isUsed && verifiedData.some(msg => msg.includes(r.tid));
+                        
+                        if(isMatch) approveReq(child.key, r.uid, r.amount, 'deposit', true);
+
+                        depHtml += `<tr>
+                            <td>${r.email}</td><td>Rs ${r.amount}</td><td>${r.tid}</td>
+                            <td>${isUsed ? '<b style="color:red">USED ❌</b>' : (isMatch ? '<b style="color:green">MATCHED ✅</b>' : 'Checking...')}</td>
+                            <td><button class="btn btn-app" onclick="approveReq('${child.key}','${r.uid}',${r.amount},'deposit')">APP</button>
+                            <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJ</button></td></tr>`;
+                    } else {
+                        withHtml += `<tr><td>${r.email}</td><td>Rs ${r.amount}</td><td>${r.method || 'N/A'}</td>
+                            <td><button class="btn btn-app" onclick="approveReq('${child.key}','${r.uid}',${r.amount},'withdraw')">APP</button>
+                            <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJ</button></td></tr>`;
+                    }
+                }
+            });
+            document.getElementById('depList').innerHTML = depHtml;
+            document.getElementById('withList').innerHTML = withHtml;
+        });
+    });
+
+    // 3. User Management (Edit Balance)
+    db.ref('users').on('value', snap => {
         let html = "";
         snap.forEach(child => {
-            const r = child.val();
-            if(r.status === 'pending') {
-                // TID Match Check
-                let isMatch = verifiedTids.some(v => v.tid && v.tid.toString().includes(r.tid.toString()));
-                
-                if(isMatch) {
-                    approveDep(child.key, r.uid, r.amount, true);
-                }
-
-                html += `<tr>
-                    <td>${r.email}</td>
-                    <td>Rs ${r.amount}</td>
-                    <td style="color:var(--gold)">${r.tid}</td>
-                    <td>${isMatch ? '<span class="status-badge auto-found">MATCHED ✅</span>' : 'Checking...'}</td>
-                    <td>
-                        <button class="btn btn-app" onclick="approveDep('${child.key}', '${r.uid}', ${r.amount})">APPROVE</button>
-                        <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJECT</button>
-                    </td>
-                </tr>`;
-            }
+            const u = child.val();
+            html += `<tr><td>${u.email}</td>
+                <td><input type="number" id="bal-${child.key}" value="${u.balance || 0}"></td>
+                <td><button class="btn btn-edit" onclick="updateBal('${child.key}')">SAVE</button></td></tr>`;
         });
-        document.getElementById('depList').innerHTML = html || "<tr><td colspan='5' style='text-align:center;'>No pending deposits</td></tr>";
+        document.getElementById('userList').innerHTML = html;
     });
 }
 
-function approveDep(key, uid, amt, auto = false) {
-    db.ref('users/' + uid + '/balance').transaction(c => (c || 0) + parseFloat(amt));
-    db.ref('requests/' + key).update({status: 'approved'});
-    if(!auto) alert("Manual Approved!");
+function approveReq(key, uid, amt, type, auto = false) {
+    if(type === 'deposit') db.ref('users/'+uid+'/balance').transaction(c => (c || 0) + amt);
+    db.ref('requests/'+key).update({status: 'approved'});
+    if(!auto) alert("Approved!");
 }
 
-function rejectReq(key) { 
-    if(confirm("Reject?")) db.ref('requests/' + key).update({status: 'rejected'}); 
+function rejectReq(key) {
+    let reason = prompt("Enter Rejection Reason:");
+    if(reason) {
+        db.ref('requests/'+key).update({status: 'rejected', reason: reason});
+        alert("Rejected with reason sent to user.");
+    }
+}
+
+function updateBal(uid) {
+    let newBal = document.getElementById('bal-'+uid).value;
+    db.ref('users/'+uid).update({balance: parseFloat(newBal)});
+    alert("Balance Updated!");
 }
 </script>
 </body>
