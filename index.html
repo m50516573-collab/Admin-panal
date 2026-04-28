@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin - Aviator Project</title>
+    <title>Master Admin - Aviator Project Control</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -12,18 +12,20 @@
         :root { --red: #ea0606; --bg: #0f1015; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
         body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
         
-        /* Login Box Style */
-        #login-box { 
-            max-width: 400px; margin: 100px auto; background: var(--card); 
-            padding: 30px; border-radius: 12px; text-align: center; border: 1px solid var(--gold);
-        }
+        #login-box { max-width: 400px; margin: 100px auto; background: var(--card); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid var(--gold); }
         .login-input { width: 90%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; }
         .login-btn { background: var(--gold); color: #000; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
 
-        /* Dashboard Style */
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--win); padding-bottom: 10px; margin-bottom: 20px; }
         .section { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; }
         h2 { color: var(--gold); font-size: 18px; text-transform: uppercase; margin-top: 0; }
+        
+        /* Game Control Panel Styles */
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .control-card { background: #000; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #444; }
+        .mult-display { font-size: 40px; font-weight: bold; color: var(--win); margin: 10px 0; }
+        .status-txt { font-size: 14px; color: #888; text-transform: uppercase; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         th { text-align: left; color: #888; padding: 12px; border-bottom: 1px solid #333; }
         td { padding: 12px; border-bottom: 1px solid #222; }
@@ -31,7 +33,11 @@
         .btn-app { background: var(--win); margin-right: 5px; }
         .btn-rej { background: var(--red); }
         .btn-set { background: var(--blue); }
+        .btn-start { background: var(--win); width: 100%; padding: 12px; font-size: 16px; margin-top: 10px; }
+        .btn-crash { background: var(--red); width: 100%; padding: 12px; font-size: 16px; margin-top: 10px; }
+        
         input { background: #000; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; width: 80px; }
+        .sms-box { background: #050505; border: 1px solid var(--win); padding: 10px; border-radius: 5px; color: var(--win); font-family: monospace; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -48,6 +54,26 @@
     <div class="header">
         <div><h1>MASTER ADMIN</h1><small>Aviator Project Control</small></div>
         <div id="stats">Users: Loading...</div>
+    </div>
+
+    <div class="section" style="border-color: var(--blue);">
+        <h2>✈️ Live Game Controller (B9 Sync)</h2>
+        <div class="game-grid">
+            <div class="control-card">
+                <div class="status-txt" id="gameStat">Current Status: WAITING</div>
+                <div class="mult-display" id="adminMult">1.00x</div>
+            </div>
+            <div class="control-card">
+                <button class="btn btn-start" onclick="startPlane()">START PLANE</button>
+                <button class="btn btn-crash" onclick="crashPlane()">CRASH NOW</button>
+            </div>
+        </div>
+        <div style="font-size: 12px; color: #888;">Note: Plane urane se pehle users ki bets check kar len.</div>
+    </div>
+
+    <div class="section">
+        <h2>Live JazzCash SMS Data</h2>
+        <div class="sms-box" id="latestSms">LATEST SMS: [Waiting for data...]</div>
     </div>
 
     <div class="section">
@@ -82,22 +108,23 @@
 
     <div class="section">
         <h2>User Management (Edit Balance)</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>User Gmail</th>
-                    <th>Current Bal</th>
-                    <th>Set New</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="userList"></tbody>
-        </table>
+        <div style="max-height: 300px; overflow-y: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User Gmail</th>
+                        <th>Current Bal</th>
+                        <th>Set New</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="userList"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
-// Firebase Configuration
 const conf = { 
     apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
     databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
@@ -105,33 +132,67 @@ const conf = {
 firebase.initializeApp(conf);
 const db = firebase.database();
 
-// Login Function
+let gameLoop;
+let currentMultiplier = 1.0;
+let isFlying = false;
+
 function loginAdmin() {
     const email = "M50516573@gmail.com";
     const pass = document.getElementById("adminPass").value;
-
     firebase.auth().signInWithEmailAndPassword(email, pass)
-    .then((userCredential) => {
-        alert("VIP Access Granted! Welcome Waseem Bhai.");
+    .then(() => {
         document.getElementById("login-box").style.display = "none";
         document.getElementById("admin-dashboard").style.display = "block";
-        startApp(); // Data load karna shuru karein
+        startApp();
     })
-    .catch((error) => {
-        alert("Wrong Password or Access Error: " + error.message);
-    });
+    .catch((err) => alert("Error: " + err.message));
 }
 
-// Function to load all data
+// --- GAME CONTROL FUNCTIONS ---
+function startPlane() {
+    if(isFlying) return;
+    isFlying = true;
+    currentMultiplier = 1.0;
+    db.ref('game_state').update({ isWaiting: false, isFlying: true, mult: 1.0 });
+    
+    gameLoop = setInterval(() => {
+        currentMultiplier += 0.01;
+        document.getElementById('adminMult').innerText = currentMultiplier.toFixed(2) + "x";
+        document.getElementById('gameStat').innerText = "Status: FLYING";
+        db.ref('game_state').update({ mult: currentMultiplier });
+        
+        // Auto Crash Safety (Profit Margin 10%)
+        if(currentMultiplier > 15.0) crashPlane(); 
+    }, 100);
+}
+
+function crashPlane() {
+    clearInterval(gameLoop);
+    isFlying = false;
+    db.ref('game_state').update({ isFlying: false, isWaiting: false });
+    document.getElementById('gameStat').innerText = "Status: CRASHED";
+    
+    setTimeout(() => {
+        db.ref('game_state').update({ isWaiting: true, timer: 7, mult: 1.0 });
+        document.getElementById('gameStat').innerText = "Status: WAITING";
+        document.getElementById('adminMult').innerText = "1.00x";
+    }, 3000);
+}
+
 function startApp() {
-    // Load Deposits
+    // SMS Listener (Agar aap Tasker use kar rahe hain)
+    db.ref('last_sms').on('value', snap => {
+        if(snap.exists()) document.getElementById('latestSms').innerText = "LATEST SMS: " + snap.val();
+    });
+
+    // Deposits
     db.ref('requests').orderByChild('type').equalTo('deposit').on('value', snap => {
         let html = "";
         snap.forEach(child => {
             const r = child.val();
             if(r.status === 'pending') {
                 html += `<tr>
-                    <td style="color:var(--blue)">${r.email || 'N/A'}</td>
+                    <td>${r.email}</td>
                     <td>Rs ${r.amount}</td>
                     <td style="color:var(--gold)">${r.tid}</td>
                     <td>
@@ -144,14 +205,14 @@ function startApp() {
         document.getElementById('depList').innerHTML = html || "<tr><td colspan='4'>No pending deposits</td></tr>";
     });
 
-    // Load Withdrawals
+    // Withdrawals
     db.ref('requests').orderByChild('type').equalTo('withdraw').on('value', snap => {
         let html = "";
         snap.forEach(child => {
             const r = child.val();
             if(r.status === 'pending') {
                 html += `<tr>
-                    <td style="color:var(--blue)">${r.email || 'N/A'}</td>
+                    <td>${r.email}</td>
                     <td>Rs ${r.amount}</td>
                     <td>${r.number}</td>
                     <td>
@@ -164,13 +225,11 @@ function startApp() {
         document.getElementById('witList').innerHTML = html || "<tr><td colspan='4'>No pending withdrawals</td></tr>";
     });
 
-    // Load Users
+    // User List
     db.ref('users').on('value', snap => {
-        let html = "";
-        let count = 0;
+        let html = ""; let count = 0;
         snap.forEach(child => {
-            count++;
-            const u = child.val();
+            count++; const u = child.val();
             html += `<tr>
                 <td>${u.email}</td>
                 <td style="color:var(--win)">Rs ${u.balance.toFixed(2)}</td>
@@ -183,35 +242,32 @@ function startApp() {
     });
 }
 
-// Admin Actions
+// Functions for Actions
 function approveDep(key, uid, amt) {
-    db.ref('users/' + uid + '/balance').transaction(current => (current || 0) + parseFloat(amt));
+    db.ref('users/' + uid + '/balance').transaction(c => (c || 0) + parseFloat(amt));
     db.ref('requests/' + key).update({status: 'approved'});
-    alert("Deposit Approved!");
+    alert("Approved!");
 }
 
 function updateStatus(key, status) {
     db.ref('requests/' + key).update({status: status});
-    alert("Status Updated to " + status);
+    alert("Status: " + status);
 }
 
 function refundWit(key, uid, amt) {
-    db.ref('users/' + uid + '/balance').transaction(current => (current || 0) + parseFloat(amt));
+    db.ref('users/' + uid + '/balance').transaction(c => (c || 0) + parseFloat(amt));
     db.ref('requests/' + key).update({status: 'rejected'});
-    alert("Withdraw Rejected & Refunded!");
+    alert("Refunded!");
 }
 
-function rejectReq(key) {
-    db.ref('requests/' + key).update({status: 'rejected'});
-    alert("Rejected!");
-}
+function rejectReq(key) { db.ref('requests/' + key).update({status: 'rejected'}); alert("Rejected!"); }
 
 function setBalance(uid) {
     const val = document.getElementById('newBal_' + uid).value;
     if(val === "") return;
     db.ref('users/' + uid).update({balance: parseFloat(val)});
-    alert("Balance Updated!");
+    alert("Updated!");
 }
 </script>
 </body>
-            </html>
+</html>
