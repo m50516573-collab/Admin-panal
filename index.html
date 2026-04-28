@@ -3,232 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin - Aviator VIP Control</title>
+    <title>MASTER CONTROL | PAK AVIATOR B9 ENGINE</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <style>
-        :root { --red: #ea0606; --bg: #0b0c10; --card: #1f2833; --win: #45a29e; --blue: #66fcf1; --gold: #f2a900; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
-        #login-box { max-width: 400px; margin: 80px auto; background: var(--card); padding: 40px; border-radius: 20px; text-align: center; border: 2px solid var(--gold); box-shadow: 0 0 20px rgba(242,169,0,0.2); }
-        .login-input { width: 90%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 8px; }
-        .login-btn { background: var(--gold); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--blue); padding-bottom: 15px; margin-bottom: 30px; }
-        .section { background: var(--card); padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 1px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .stat-card { background: #0b0c10; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #444; }
-        .house-edge-box { background: linear-gradient(45deg, #1f2833, #0b0c10); border: 2px solid var(--red); padding: 20px; border-radius: 15px; text-align: center; }
-        .mult-large { font-size: 50px; font-weight: 900; color: var(--blue); text-shadow: 0 0 10px var(--blue); }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-start { background: var(--win); width: 100%; font-size: 18px; height: 50px; }
-        .btn-crash { background: var(--red); width: 100%; font-size: 18px; height: 50px; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; color: var(--blue); padding: 15px; border-bottom: 2px solid #333; text-transform: uppercase; font-size: 12px; }
-        td { padding: 15px; border-bottom: 1px solid #222; font-size: 14px; }
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        :root {
+            --red: #ea0606; --bg: #050608; --card: #12141d;
+            --win: #00ff88; --blue: #00d9ff; --gold: #ffcc00;
+            --text: #e0e0e0;
+        }
+
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: 'Inter', sans-serif; margin: 0; padding: 15px;
+            overflow-x: hidden;
+        }
+
+        /* --- Login Section --- */
+        #login-box {
+            max-width: 420px; margin: 100px auto; background: var(--card);
+            padding: 40px; border-radius: 24px; text-align: center;
+            border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .login-input {
+            width: 100%; padding: 14px; margin: 12px 0; background: #000;
+            border: 1px solid #444; color: #fff; border-radius: 12px; font-size: 16px;
+        }
+        .login-btn {
+            background: linear-gradient(90deg, var(--gold), #ff9900);
+            color: #000; padding: 16px; border: none; border-radius: 12px;
+            font-weight: 900; cursor: pointer; width: 100%; font-size: 18px;
+        }
+
+        /* --- Dashboard Header --- */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--card); padding: 20px; border-radius: 16px;
+            margin-bottom: 20px; border: 1px solid #222;
+        }
+        .server-status { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        .pulse { width: 10px; height: 10px; background: var(--win); border-radius: 50%; box-shadow: 0 0 10px var(--win); animation: blink 1s infinite; }
+
+        /* --- Game Controller Card --- */
+        .engine-card {
+            background: radial-gradient(circle at top right, #1a1c25, var(--card));
+            padding: 30px; border-radius: 20px; margin-bottom: 25px;
+            border-left: 5px solid var(--red);
+        }
+        .mult-display {
+            font-size: 70px; font-weight: 900; color: var(--blue);
+            text-align: center; font-family: monospace; letter-spacing: -2px;
+        }
+
+        /* --- Stats Grid --- */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px; margin-bottom: 25px;
+        }
+        .stat-item {
+            background: var(--card); padding: 20px; border-radius: 16px;
+            border: 1px solid #222; position: relative;
+        }
+        .stat-item i { position: absolute; right: 20px; top: 20px; color: #333; font-size: 24px; }
+        .stat-val { font-size: 26px; font-weight: 800; margin: 10px 0; }
+        .stat-label { font-size: 11px; color: #888; text-transform: uppercase; }
+
+        /* --- Tables --- */
+        .table-container {
+            background: var(--card); border-radius: 20px; padding: 20px;
+            margin-bottom: 25px; border: 1px solid #222;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; color: #888; font-size: 12px; border-bottom: 1px solid #222; }
+        td { padding: 15px; font-size: 14px; border-bottom: 1px solid #1a1a1a; }
+
+        /* --- Custom Buttons --- */
+        .action-btn {
+            padding: 10px 18px; border: none; border-radius: 10px;
+            font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .btn-approve { background: rgba(0, 255, 136, 0.1); color: var(--win); }
+        .btn-approve:hover { background: var(--win); color: #000; }
+        
+        .house-input {
+            background: #000; border: 2px solid var(--red); color: var(--red);
+            font-size: 32px; width: 120px; text-align: center; border-radius: 12px;
+            font-weight: 900;
+        }
+
+        @keyframes blink { 0% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
     </style>
 </head>
 <body>
 
 <div id="login-box">
-    <h2 style="color:var(--gold)">AVIATOR MASTER CONTROL</h2>
+    <div style="color:var(--red); font-size: 40px; margin-bottom: 10px;"><i class="fas fa-shield-alt"></i></div>
+    <h2 style="margin-bottom: 5px;">B9 ADMIN CORE</h2>
+    <p style="color:#666; font-size:12px; margin-top:0;">Secure Access Only</p>
     <input type="email" id="adminEmail" class="login-input" value="M50516573@gmail.com" readonly>
-    <input type="password" id="adminPass" class="login-input" placeholder="VIP Security Key">
-    <button class="login-btn" onclick="loginAdmin()">UNLOCK SYSTEM</button>
+    <input type="password" id="adminPass" class="login-input" placeholder="Security Token">
+    <button class="login-btn" onclick="loginAdmin()">BOOT SYSTEM</button>
 </div>
 
 <div id="admin-dashboard" style="display: none;">
     <div class="header">
-        <div><h1>DASHBOARD</h1><small id="serverTime">Server Sync: OK</small></div>
-        <div id="userStats" class="stat-card" style="padding:10px 30px;">Active Users: 0</div>
+        <div>
+            <h2 style="margin:0;">SYSTEM MONITOR</h2>
+            <div class="server-status"><div class="pulse"></div> B9 ENGINE ONLINE | <span id="clock">00:00:00</span></div>
+        </div>
+        <div id="activeCount" style="color:var(--win); font-weight:bold;">USERS: 0</div>
     </div>
 
-    <div class="section">
-        <div class="control-grid">
-            <div class="house-edge-box">
-                <h3 style="color:var(--red); margin:0;">HOUSE EDGE %</h3>
-                <p style="font-size:11px; color:#888;">(0% = Public Win | 100% = House Win)</p>
-                <input type="number" id="hEdge" value="10" min="0" max="100" style="width:100px; font-size:30px; text-align:center; background:#000; color:var(--red); border:1px solid var(--red); border-radius:10px;">
-                <button class="btn" style="background:var(--red); margin-top:10px;" onclick="saveSettings()">UPDATE EDGE</button>
+    <div class="engine-card">
+        <div class="stats-grid">
+            <div style="text-align: center;">
+                <div class="stat-label">Current Multiplier</div>
+                <div class="mult-display" id="liveMult">1.00x</div>
+                <div id="gameStatus" style="color:var(--gold); font-weight:bold;">ROUND READY</div>
             </div>
-            <div class="stat-card">
-                <h3>LIVE ENGINE</h3>
-                <div class="mult-large" id="liveMult">1.00x</div>
-                <div id="gameStatus" style="color:var(--gold)">WAITING</div>
-            </div>
-            <div class="stat-card">
-                <h3>ROUND PROFIT</h3>
-                <div style="font-size:24px; color:var(--win)">Rs <span id="roundBets">0</span></div>
-                <div style="font-size:12px; color:#888;">Total Bet Volume</div>
-                <label style="display:block; margin-top:10px;"><input type="checkbox" id="autoMode" checked> AUTO-PILOT ON</label>
+            <div style="text-align: center; border-left: 1px solid #333;">
+                <div class="stat-label">Profit Target (House Edge %)</div>
+                <input type="number" id="hEdge" class="house-input" value="10">
+                <button class="action-btn" style="background:var(--red); color:white; width:100%; margin-top:15px;" onclick="saveEdge()">LOCK PROFIT</button>
             </div>
         </div>
-        <div class="game-grid" style="margin-top:20px;">
-            <button class="btn btn-start" id="sBtn" onclick="forceStart()">FORCE START ROUND</button>
-            <button class="btn btn-crash" id="cBtn" onclick="forceCrash()">FORCE CRASH (EMERGENCY)</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="action-btn" style="flex:1; height:60px; background:var(--win); color:#000;" onclick="manualStart()">FORCE START</button>
+            <button class="action-btn" style="flex:1; height:60px; background:var(--red); color:#fff;" onclick="manualCrash()">FORCE CRASH</button>
         </div>
     </div>
 
-    <div class="section">
-        <h2>DEPOSITS & WITHDRAWALS</h2>
-        <div class="control-grid">
-            <div style="overflow-x:auto;">
-                <h3>Pending Deposits</h3>
-                <table id="depTable"><thead><tr><th>User</th><th>Amt</th><th>TID</th><th>Action</th></tr></thead><tbody id="depList"></tbody></table>
-            </div>
-            <div style="overflow-x:auto;">
-                <h3>Pending Withdraws</h3>
-                <table id="witTable"><thead><tr><th>User</th><th>Amt</th><th>Bank</th><th>Action</th></tr></thead><tbody id="witList"></tbody></table>
-            </div>
+    <div class="stats-grid">
+        <div class="stat-item">
+            <i class="fas fa-chart-line"></i>
+            <div class="stat-label">Total Bets (Round)</div>
+            <div class="stat-val" style="color:var(--blue)">Rs <span id="totalBets">0</span></div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-users"></i>
+            <div class="stat-label">Total Registered</div>
+            <div class="stat-val" id="totalUsers">0</div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-toggle-on"></i>
+            <div class="stat-label">Auto-Pilot Mode</div>
+            <div class="stat-val" style="color:var(--win)">ACTIVE</div>
         </div>
     </div>
 
-    <div class="section">
-        <h2>USER DATABASE</h2>
-        <div style="max-height:400px; overflow-y:auto;">
-            <table id="userTable"><thead><tr><th>Email</th><th>Balance</th><th>Wager</th><th>Action</th></tr></thead><tbody id="userList"></tbody></table>
-        </div>
+    <div class="table-container">
+        <h3 style="margin-top:0;"><i class="fas fa-university"></i> DEPOSIT REQUESTS</h3>
+        <table id="depTable">
+            <thead><tr><th>USER EMAIL</th><th>AMOUNT</th><th>TID / REF</th><th>ACTION</th></tr></thead>
+            <tbody id="depList"></tbody>
+        </table>
     </div>
+
+    <div class="table-container">
+        <h3 style="margin-top:0;"><i class="fas fa-hand-holding-usd"></i> WITHDRAWAL QUEUE</h3>
+        <table id="witTable">
+            <thead><tr><th>USER EMAIL</th><th>AMOUNT</th><th>ACCOUNT</th><th>ACTION</th></tr></thead>
+            <tbody id="witList"></tbody>
+        </table>
+    </div>
+
 </div>
 
 <script>
-const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
-firebase.initializeApp(conf);
-const db = firebase.database();
+    const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
+    firebase.initializeApp(conf);
+    const db = firebase.database();
 
-let currentMult = 1.0;
-let isFlying = false;
-let loop;
-let currentTotalBets = 0;
+    let curM = 1.0, isFly = false, loop, totB = 0;
 
-function loginAdmin() {
-    const p = document.getElementById('adminPass').value;
-    firebase.auth().signInWithEmailAndPassword("M50516573@gmail.com", p)
-    .then(() => {
-        document.getElementById('login-box').style.display = 'none';
-        document.getElementById('admin-dashboard').style.display = 'block';
-        initAdminEngine();
-    }).catch(e => alert(e.message));
-}
-
-function initAdminEngine() {
-    // Sync House Edge
-    db.ref('settings/houseEdge').on('value', s => { if(s.exists()) document.getElementById('hEdge').value = s.val(); });
-
-    // Live Game Monitor
-    db.ref('game_state').on('value', snap => {
-        const d = snap.val();
-        if(!d) return;
-        currentMult = d.mult;
-        isFlying = d.isFlying;
-        document.getElementById('liveMult').innerText = currentMult.toFixed(2) + "x";
-        document.getElementById('gameStatus').innerText = d.isWaiting ? "WAITING (" + d.timer + "s)" : (d.isFlying ? "FLYING" : "CRASHED");
-    });
-
-    // Bet Monitor
-    db.ref('active_bets').on('value', snap => {
-        currentTotalBets = 0;
-        snap.forEach(b => { currentTotalBets += parseFloat(b.val().amt || 0); });
-        document.getElementById('roundBets').innerText = currentTotalBets;
-    });
-
-    loadData();
-    // Start Auto-Pilot Logic
-    setInterval(autoPilotEngine, 1000);
-}
-
-function saveSettings() {
-    const edge = document.getElementById('hEdge').value;
-    db.ref('settings').update({ houseEdge: parseInt(edge) });
-    alert("House Edge updated to " + edge + "%");
-}
-
-function autoPilotEngine() {
-    if(!document.getElementById('autoMode').checked) return;
-    
-    db.ref('game_state').once('value', snap => {
-        const d = snap.val();
-        if(d.isWaiting && d.timer <= 0) {
-            startFlying();
-        }
-        if(d.isFlying) {
-            checkCrashLogic(d.mult);
-        }
-        if(!d.isFlying && !d.isWaiting) {
-            // After crash, wait 3s then reset to waiting
-            setTimeout(() => {
-                db.ref('game_state').update({ isWaiting: true, isFlying: false, timer: 7, mult: 1.0 });
-                db.ref('active_bets').remove(); // Clear bets for new round
-            }, 3000);
-        }
-    });
-}
-
-function startFlying() {
-    db.ref('game_state').update({ isWaiting: false, isFlying: true, mult: 1.0 });
-    loop = setInterval(() => {
-        currentMult += 0.01;
-        db.ref('game_state').update({ mult: currentMult });
-    }, 100);
-}
-
-function checkCrashLogic(m) {
-    const edge = parseInt(document.getElementById('hEdge').value);
-    
-    // Profit Calculation: Agar total bets se payouts upar ja rahe hon, to crash kar do
-    // Logic: House Edge determines maximum payout allowed
-    let maxPayoutAllowed = currentTotalBets * (1 - (edge/100));
-    
-    // Random Crash Factor (For natural feel)
-    let randomCrash = Math.random();
-    
-    if(edge === 100 || (m > 1.1 && randomCrash < 0.015)) { 
-        forceCrash(); 
-    } else if (edge > 0 && m > 2.0 && randomCrash < (edge/1000)) {
-        forceCrash();
+    function loginAdmin() {
+        const pass = document.getElementById('adminPass').value;
+        firebase.auth().signInWithEmailAndPassword("M50516573@gmail.com", pass)
+        .then(() => {
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+            startMasterEngine();
+        }).catch(e => alert("VIP Access Denied: " + e.message));
     }
-}
 
-function forceCrash() {
-    clearInterval(loop);
-    db.ref('game_state').update({ isFlying: false, isWaiting: false });
-}
+    function startMasterEngine() {
+        // Time & Server Logic
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
 
-function forceStart() {
-    db.ref('game_state').update({ isWaiting: false, isFlying: true, timer: 0 });
-}
+        // Sync Profit Settings
+        db.ref('settings/houseEdge').on('value', s => { if(s.exists()) document.getElementById('hEdge').value = s.val(); });
 
-// Data Loading Functions (Same as before but optimized)
-function loadData() {
-    db.ref('requests').on('value', snap => {
-        let dHtml = "", wHtml = "";
-        snap.forEach(c => {
-            const r = c.val();
-            if(r.status === 'pending') {
-                const row = `<tr><td>${r.email}</td><td>${r.amount}</td><td>${r.tid || r.number}</td>
-                <td><button class="btn" style="background:var(--win)" onclick="approveReq('${c.key}','${r.uid}',${r.amount},'${r.type}')">OK</button></td></tr>`;
-                if(r.type === 'deposit') dHtml += row; else wHtml += row;
+        // Game Monitor
+        db.ref('game_state').on('value', snap => {
+            const d = snap.val();
+            if(!d) return;
+            curM = d.mult;
+            isFly = d.isFlying;
+            document.getElementById('liveMult').innerText = curM.toFixed(2) + "x";
+            document.getElementById('gameStatus').innerText = d.isWaiting ? "WAITING NEXT ROUND" : (d.isFlying ? "PLANE IN AIR" : "CRASHED");
+            document.getElementById('liveMult').style.color = d.isFlying ? "var(--win)" : "var(--red)";
+        });
+
+        // Live Bet Calculator
+        db.ref('active_bets').on('value', snap => {
+            totB = 0;
+            snap.forEach(b => { totB += parseFloat(b.val().amt || 0); });
+            document.getElementById('totalBets').innerText = totB.toLocaleString();
+        });
+
+        loadSystemData();
+        setInterval(autoPilotLogic, 1000);
+    }
+
+    function autoPilotLogic() {
+        db.ref('game_state').once('value', snap => {
+            const d = snap.val();
+            if(d.isWaiting && d.timer <= 0) {
+                beginFlight();
+            }
+            if(d.isFlying) {
+                calculateCrashPoint(d.mult);
+            }
+            if(!d.isFlying && !d.isWaiting) {
+                setTimeout(() => {
+                    db.ref('game_state').update({ isWaiting: true, isFlying: false, timer: 7, mult: 1.0 });
+                    db.ref('active_bets').remove();
+                }, 3000);
             }
         });
-        document.getElementById('depList').innerHTML = dHtml;
-        document.getElementById('witList').innerHTML = wHtml;
-    });
+    }
 
-    db.ref('users').on('value', snap => {
-        let uHtml = "";
-        snap.forEach(c => {
-            const u = c.val();
-            uHtml += `<tr><td>${u.email}</td><td style="color:var(--blue)">${u.balance.toFixed(2)}</td><td>${u.wager}</td>
-            <td><button class="btn" style="background:var(--gold)" onclick="editUser('${c.key}')">EDIT</button></td></tr>`;
+    function beginFlight() {
+        db.ref('game_state').update({ isWaiting: false, isFlying: true, mult: 1.0 });
+        loop = setInterval(() => {
+            curM += 0.01;
+            db.ref('game_state').update({ mult: curM });
+        }, 100);
+    }
+
+    function calculateCrashPoint(m) {
+        const edge = parseInt(document.getElementById('hEdge').value);
+        let maxPay = totB * (1 - (edge/100));
+        
+        // Randomization for realism
+        let rand = Math.random();
+        
+        // Auto-Crash if payout exceeds profit margin
+        if (edge > 0 && m > 1.5 && rand < (edge/500)) {
+            manualCrash();
+        } else if (m > 30.0) { // Safety limit
+            manualCrash();
+        }
+    }
+
+    function manualCrash() {
+        clearInterval(loop);
+        db.ref('game_state').update({ isFlying: false, isWaiting: false });
+    }
+
+    function manualStart() {
+        db.ref('game_state').update({ isWaiting: false, isFlying: true, timer: 0 });
+    }
+
+    function saveEdge() {
+        db.ref('settings').update({ houseEdge: parseInt(document.getElementById('hEdge').value) });
+        alert("Profit Locked!");
+    }
+
+    function loadSystemData() {
+        // Deposits & Withdrawals Listener
+        db.ref('requests').on('value', snap => {
+            let dH = "", wH = "";
+            snap.forEach(c => {
+                const r = c.val();
+                if(r.status === 'pending') {
+                    const row = `<tr><td>${r.email}</td><td>Rs ${r.amount}</td><td>${r.tid || r.number}</td>
+                    <td><button class="action-btn btn-approve" onclick="process('${c.key}','${r.uid}',${r.amount},'${r.type}')">APPROVE</button></td></tr>`;
+                    if(r.type === 'deposit') dH += row; else wH += row;
+                }
+            });
+            document.getElementById('depList').innerHTML = dH || "<tr><td colspan='4'>All clear</td></tr>";
+            document.getElementById('witList').innerHTML = wH || "<tr><td colspan='4'>All clear</td></tr>";
         });
-        document.getElementById('userList').innerHTML = uHtml;
-    });
-}
 
-function approveReq(key, uid, amt, type) {
-    if(type === 'deposit') db.ref('users/'+uid+'/balance').transaction(c => (c||0)+amt);
-    db.ref('requests/'+key).update({status: 'approved'});
-}
+        // User Stats
+        db.ref('users').on('value', snap => {
+            document.getElementById('totalUsers').innerText = snap.numChildren();
+            document.getElementById('activeCount').innerText = "USERS: " + snap.numChildren();
+        });
+    }
+
+    function process(key, uid, amt, type) {
+        if(type === 'deposit') {
+            db.ref('users/'+uid+'/balance').transaction(c => (c||0)+amt);
+        }
+        db.ref('requests/'+key).update({status: 'approved'});
+    }
 </script>
 </body>
-</html>
+    </html>
+    
