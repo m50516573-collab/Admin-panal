@@ -3,307 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MASTER CONTROL | PAK AVIATOR B9 ENGINE</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Master Admin - Aviator B9 VIP</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
+    
     <style>
-        :root {
-            --red: #ea0606; --bg: #050608; --card: #12141d;
-            --win: #00ff88; --blue: #00d9ff; --gold: #ffcc00;
-            --text: #e0e0e0;
-        }
-
-        body {
-            background: var(--bg); color: var(--text);
-            font-family: 'Inter', sans-serif; margin: 0; padding: 15px;
-            overflow-x: hidden;
-        }
-
-        /* --- Login Section --- */
-        #login-box {
-            max-width: 420px; margin: 100px auto; background: var(--card);
-            padding: 40px; border-radius: 24px; text-align: center;
-            border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-        .login-input {
-            width: 100%; padding: 14px; margin: 12px 0; background: #000;
-            border: 1px solid #444; color: #fff; border-radius: 12px; font-size: 16px;
-        }
-        .login-btn {
-            background: linear-gradient(90deg, var(--gold), #ff9900);
-            color: #000; padding: 16px; border: none; border-radius: 12px;
-            font-weight: 900; cursor: pointer; width: 100%; font-size: 18px;
-        }
-
-        /* --- Dashboard Header --- */
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--card); padding: 20px; border-radius: 16px;
-            margin-bottom: 20px; border: 1px solid #222;
-        }
-        .server-status { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-        .pulse { width: 10px; height: 10px; background: var(--win); border-radius: 50%; box-shadow: 0 0 10px var(--win); animation: blink 1s infinite; }
-
-        /* --- Game Controller Card --- */
-        .engine-card {
-            background: radial-gradient(circle at top right, #1a1c25, var(--card));
-            padding: 30px; border-radius: 20px; margin-bottom: 25px;
-            border-left: 5px solid var(--red);
-        }
-        .mult-display {
-            font-size: 70px; font-weight: 900; color: var(--blue);
-            text-align: center; font-family: monospace; letter-spacing: -2px;
-        }
-
-        /* --- Stats Grid --- */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px; margin-bottom: 25px;
-        }
-        .stat-item {
-            background: var(--card); padding: 20px; border-radius: 16px;
-            border: 1px solid #222; position: relative;
-        }
-        .stat-item i { position: absolute; right: 20px; top: 20px; color: #333; font-size: 24px; }
-        .stat-val { font-size: 26px; font-weight: 800; margin: 10px 0; }
-        .stat-label { font-size: 11px; color: #888; text-transform: uppercase; }
-
-        /* --- Tables --- */
-        .table-container {
-            background: var(--card); border-radius: 20px; padding: 20px;
-            margin-bottom: 25px; border: 1px solid #222;
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; color: #888; font-size: 12px; border-bottom: 1px solid #222; }
-        td { padding: 15px; font-size: 14px; border-bottom: 1px solid #1a1a1a; }
-
-        /* --- Custom Buttons --- */
-        .action-btn {
-            padding: 10px 18px; border: none; border-radius: 10px;
-            font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
-        .btn-approve { background: rgba(0, 255, 136, 0.1); color: var(--win); }
-        .btn-approve:hover { background: var(--win); color: #000; }
+        :root { --red: #ea0606; --bg: #0f1015; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
         
-        .house-input {
-            background: #000; border: 2px solid var(--red); color: var(--red);
-            font-size: 32px; width: 120px; text-align: center; border-radius: 12px;
-            font-weight: 900;
-        }
+        #login-box { max-width: 400px; margin: 100px auto; background: var(--card); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid var(--gold); }
+        .login-input { width: 90%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; }
+        .login-btn { background: var(--gold); color: #000; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
 
-        @keyframes blink { 0% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--win); padding-bottom: 10px; margin-bottom: 20px; }
+        .section { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; }
+        
+        /* Engine Control UI */
+        .engine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .status-tile { background: #000; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #444; }
+        .big-mult { font-size: 35px; font-weight: 900; color: var(--gold); display: block; }
+        
+        h2 { color: var(--gold); font-size: 16px; text-transform: uppercase; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { text-align: left; color: #888; padding: 10px; border-bottom: 1px solid #333; }
+        td { padding: 10px; border-bottom: 1px solid #222; }
+        
+        .btn { padding: 8px 15px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; }
+        .btn-start { background: var(--win); width: 100%; padding: 15px; font-size: 16px; }
+        .btn-stop { background: var(--red); width: 100%; padding: 15px; font-size: 16px; }
+        .btn-set { background: var(--blue); }
+        input { background: #000; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <div id="login-box">
-    <div style="color:var(--red); font-size: 40px; margin-bottom: 10px;"><i class="fas fa-shield-alt"></i></div>
-    <h2 style="margin-bottom: 5px;">B9 ADMIN CORE</h2>
-    <p style="color:#666; font-size:12px; margin-top:0;">Secure Access Only</p>
+    <h2 style="color:var(--gold)">B9 VIP ENGINE</h2>
+    <p>Master Admin Access</p>
     <input type="email" id="adminEmail" class="login-input" value="M50516573@gmail.com" readonly>
-    <input type="password" id="adminPass" class="login-input" placeholder="Security Token">
-    <button class="login-btn" onclick="loginAdmin()">BOOT SYSTEM</button>
+    <input type="password" id="adminPass" class="login-input" placeholder="VIP Password">
+    <button class="login-btn" onclick="loginAdmin()">OPEN CONTROL PANEL</button>
 </div>
 
 <div id="admin-dashboard" style="display: none;">
     <div class="header">
-        <div>
-            <h2 style="margin:0;">SYSTEM MONITOR</h2>
-            <div class="server-status"><div class="pulse"></div> B9 ENGINE ONLINE | <span id="clock">00:00:00</span></div>
-        </div>
-        <div id="activeCount" style="color:var(--win); font-weight:bold;">USERS: 0</div>
+        <div><h1>MASTER ADMIN</h1><small id="stats">Engine: Offline</small></div>
+        <button onclick="location.reload()" style="background:none; color:#888; border:1px solid #444; border-radius:5px; padding:5px;">Logout</button>
     </div>
 
-    <div class="engine-card">
-        <div class="stats-grid">
-            <div style="text-align: center;">
-                <div class="stat-label">Current Multiplier</div>
-                <div class="mult-display" id="liveMult">1.00x</div>
-                <div id="gameStatus" style="color:var(--gold); font-weight:bold;">ROUND READY</div>
+    <div class="section" style="border: 1px solid var(--gold);">
+        <h2>✈️ B9 Game Engine Control</h2>
+        <div class="engine-grid">
+            <div class="status-tile">
+                <span style="font-size:10px; color:#888;">LIVE MULTIPLIER</span>
+                <span id="liveMult" class="big-mult">1.00x</span>
             </div>
-            <div style="text-align: center; border-left: 1px solid #333;">
-                <div class="stat-label">Profit Target (House Edge %)</div>
-                <input type="number" id="hEdge" class="house-input" value="10">
-                <button class="action-btn" style="background:var(--red); color:white; width:100%; margin-top:15px;" onclick="saveEdge()">LOCK PROFIT</button>
+            <div class="status-tile">
+                <span style="font-size:10px; color:#888;">NEXT CRASH POINT</span><br>
+                <input type="number" id="nextCrash" value="2.5" step="0.1" style="width:70%; font-size:20px; text-align:center; margin-top:5px;">
             </div>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <button class="action-btn" style="flex:1; height:60px; background:var(--win); color:#000;" onclick="manualStart()">FORCE START</button>
-            <button class="action-btn" style="flex:1; height:60px; background:var(--red); color:#fff;" onclick="manualCrash()">FORCE CRASH</button>
+        <div id="loopControls">
+            <button id="startBtn" class="btn btn-start" onclick="startAutoLoop()">START AUTO GAME LOOP</button>
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-item">
-            <i class="fas fa-chart-line"></i>
-            <div class="stat-label">Total Bets (Round)</div>
-            <div class="stat-val" style="color:var(--blue)">Rs <span id="totalBets">0</span></div>
-        </div>
-        <div class="stat-item">
-            <i class="fas fa-users"></i>
-            <div class="stat-label">Total Registered</div>
-            <div class="stat-val" id="totalUsers">0</div>
-        </div>
-        <div class="stat-item">
-            <i class="fas fa-toggle-on"></i>
-            <div class="stat-label">Auto-Pilot Mode</div>
-            <div class="stat-val" style="color:var(--win)">ACTIVE</div>
+    <div class="section">
+        <h2>Deposit Requests (Check TID)</h2>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead><tr><th>Gmail</th><th>Amt</th><th>TID</th><th>Action</th></tr></thead>
+                <tbody id="depList"></tbody>
+            </table>
         </div>
     </div>
 
-    <div class="table-container">
-        <h3 style="margin-top:0;"><i class="fas fa-university"></i> DEPOSIT REQUESTS</h3>
-        <table id="depTable">
-            <thead><tr><th>USER EMAIL</th><th>AMOUNT</th><th>TID / REF</th><th>ACTION</th></tr></thead>
-            <tbody id="depList"></tbody>
-        </table>
+    <div class="section">
+        <h2>Withdrawal Requests</h2>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead><tr><th>Gmail</th><th>Amt</th><th>Account</th><th>Action</th></tr></thead>
+                <tbody id="witList"></tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="table-container">
-        <h3 style="margin-top:0;"><i class="fas fa-hand-holding-usd"></i> WITHDRAWAL QUEUE</h3>
-        <table id="witTable">
-            <thead><tr><th>USER EMAIL</th><th>AMOUNT</th><th>ACCOUNT</th><th>ACTION</th></tr></thead>
-            <tbody id="witList"></tbody>
-        </table>
+    <div class="section">
+        <h2>User Management</h2>
+        <div style="overflow-x:auto; max-height: 300px;">
+            <table>
+                <thead><tr><th>Gmail</th><th>Bal</th><th>Set</th><th>Action</th></tr></thead>
+                <tbody id="userList"></tbody>
+            </table>
+        </div>
     </div>
-
 </div>
 
 <script>
-    const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
-    firebase.initializeApp(conf);
-    const db = firebase.database();
+const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
+firebase.initializeApp(conf);
+const db = firebase.database();
 
-    let curM = 1.0, isFly = false, loop, totB = 0;
+function loginAdmin() {
+    const email = "M50516573@gmail.com";
+    const pass = document.getElementById("adminPass").value;
+    firebase.auth().signInWithEmailAndPassword(email, pass)
+    .then(() => {
+        document.getElementById("login-box").style.display = "none";
+        document.getElementById("admin-dashboard").style.display = "block";
+        loadData();
+        listenToEngine();
+    }).catch(e => alert("Error: " + e.message));
+}
 
-    function loginAdmin() {
-        const pass = document.getElementById('adminPass').value;
-        firebase.auth().signInWithEmailAndPassword("M50516573@gmail.com", pass)
-        .then(() => {
-            document.getElementById('login-box').style.display = 'none';
-            document.getElementById('admin-dashboard').style.display = 'block';
-            startMasterEngine();
-        }).catch(e => alert("VIP Access Denied: " + e.message));
-    }
+// --- GAME ENGINE LOGIC ---
+let isLoopRunning = false;
 
-    function startMasterEngine() {
-        // Time & Server Logic
-        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
-
-        // Sync Profit Settings
-        db.ref('settings/houseEdge').on('value', s => { if(s.exists()) document.getElementById('hEdge').value = s.val(); });
-
-        // Game Monitor
-        db.ref('game_state').on('value', snap => {
-            const d = snap.val();
-            if(!d) return;
-            curM = d.mult;
-            isFly = d.isFlying;
-            document.getElementById('liveMult').innerText = curM.toFixed(2) + "x";
-            document.getElementById('gameStatus').innerText = d.isWaiting ? "WAITING NEXT ROUND" : (d.isFlying ? "PLANE IN AIR" : "CRASHED");
-            document.getElementById('liveMult').style.color = d.isFlying ? "var(--win)" : "var(--red)";
-        });
-
-        // Live Bet Calculator
-        db.ref('active_bets').on('value', snap => {
-            totB = 0;
-            snap.forEach(b => { totB += parseFloat(b.val().amt || 0); });
-            document.getElementById('totalBets').innerText = totB.toLocaleString();
-        });
-
-        loadSystemData();
-        setInterval(autoPilotLogic, 1000);
-    }
-
-    function autoPilotLogic() {
-        db.ref('game_state').once('value', snap => {
-            const d = snap.val();
-            if(d.isWaiting && d.timer <= 0) {
-                beginFlight();
-            }
-            if(d.isFlying) {
-                calculateCrashPoint(d.mult);
-            }
-            if(!d.isFlying && !d.isWaiting) {
-                setTimeout(() => {
-                    db.ref('game_state').update({ isWaiting: true, isFlying: false, timer: 7, mult: 1.0 });
-                    db.ref('active_bets').remove();
-                }, 3000);
-            }
-        });
-    }
-
-    function beginFlight() {
-        db.ref('game_state').update({ isWaiting: false, isFlying: true, mult: 1.0 });
-        loop = setInterval(() => {
-            curM += 0.01;
-            db.ref('game_state').update({ mult: curM });
-        }, 100);
-    }
-
-    function calculateCrashPoint(m) {
-        const edge = parseInt(document.getElementById('hEdge').value);
-        let maxPay = totB * (1 - (edge/100));
-        
-        // Randomization for realism
-        let rand = Math.random();
-        
-        // Auto-Crash if payout exceeds profit margin
-        if (edge > 0 && m > 1.5 && rand < (edge/500)) {
-            manualCrash();
-        } else if (m > 30.0) { // Safety limit
-            manualCrash();
+function listenToEngine() {
+    db.ref('game_state').on('value', snap => {
+        const d = snap.val();
+        if(d) {
+            document.getElementById('liveMult').innerText = d.mult.toFixed(2) + "x";
+            document.getElementById('stats').innerText = d.isFlying ? "Status: FLYING" : (d.isWaiting ? "Status: WAITING" : "Status: CRASHED");
         }
-    }
+    });
+}
 
-    function manualCrash() {
-        clearInterval(loop);
-        db.ref('game_state').update({ isFlying: false, isWaiting: false });
-    }
+async function startAutoLoop() {
+    if(isLoopRunning) return;
+    isLoopRunning = true;
+    document.getElementById('loopControls').innerHTML = `<button class="btn btn-stop" onclick="location.reload()">STOP & EMERGENCY RESET</button>`;
+    
+    while(isLoopRunning) {
+        // 1. Waiting (7s)
+        for(let i=7; i>=0; i--) {
+            await db.ref('game_state').update({ isFlying: false, isWaiting: true, timer: i, mult: 1.0 });
+            await new Promise(r => setTimeout(r, 1000));
+        }
 
-    function manualStart() {
-        db.ref('game_state').update({ isWaiting: false, isFlying: true, timer: 0 });
-    }
+        // 2. Flying
+        let crashPoint = parseFloat(document.getElementById('nextCrash').value) || 2.0;
+        let m = 1.0;
+        await db.ref('game_state').update({ isFlying: true, isWaiting: false });
+        
+        while(m < crashPoint) {
+            m += 0.01;
+            await db.ref('game_state').update({ mult: m });
+            // Plane speed control
+            let speed = m < 2 ? 100 : (m < 5 ? 60 : 30); 
+            await new Promise(r => setTimeout(r, speed));
+        }
 
-    function saveEdge() {
-        db.ref('settings').update({ houseEdge: parseInt(document.getElementById('hEdge').value) });
-        alert("Profit Locked!");
+        // 3. Crash
+        await db.ref('game_state').update({ isFlying: false, isWaiting: false });
+        await new Promise(r => setTimeout(r, 3000)); // Wait 3s before next round
+        
+        // Randomize next crash point for variety
+        document.getElementById('nextCrash').value = (Math.random() * (3.5 - 1.1) + 1.1).toFixed(2);
     }
+}
 
-    function loadSystemData() {
-        // Deposits & Withdrawals Listener
-        db.ref('requests').on('value', snap => {
-            let dH = "", wH = "";
-            snap.forEach(c => {
-                const r = c.val();
-                if(r.status === 'pending') {
-                    const row = `<tr><td>${r.email}</td><td>Rs ${r.amount}</td><td>${r.tid || r.number}</td>
-                    <td><button class="action-btn btn-approve" onclick="process('${c.key}','${r.uid}',${r.amount},'${r.type}')">APPROVE</button></td></tr>`;
-                    if(r.type === 'deposit') dH += row; else wH += row;
+// --- DATA MANAGEMENT ---
+function loadData() {
+    // Deposits
+    db.ref('requests').on('value', snap => {
+        let depHtml = "", witHtml = "";
+        snap.forEach(child => {
+            const r = child.val();
+            if(r.status === 'pending') {
+                if(r.type === 'deposit') {
+                    depHtml += `<tr><td>${r.email}</td><td>${r.amount}</td><td>${r.tid}</td>
+                        <td><button class="btn" style="background:green" onclick="approveDep('${child.key}','${r.uid}',${r.amount})">✔</button></td></tr>`;
+                } else {
+                    witHtml += `<tr><td>${r.email}</td><td>${r.amount}</td><td>${r.number}</td>
+                        <td><button class="btn" style="background:var(--blue)" onclick="payWit('${child.key}')">PAID</button></td></tr>`;
                 }
-            });
-            document.getElementById('depList').innerHTML = dH || "<tr><td colspan='4'>All clear</td></tr>";
-            document.getElementById('witList').innerHTML = wH || "<tr><td colspan='4'>All clear</td></tr>";
+            }
         });
+        document.getElementById('depList').innerHTML = depHtml;
+        document.getElementById('witList').innerHTML = witHtml;
+    });
 
-        // User Stats
-        db.ref('users').on('value', snap => {
-            document.getElementById('totalUsers').innerText = snap.numChildren();
-            document.getElementById('activeCount').innerText = "USERS: " + snap.numChildren();
+    // Users
+    db.ref('users').on('value', snap => {
+        let html = "";
+        snap.forEach(child => {
+            const u = child.val();
+            html += `<tr><td>${u.email}</td><td style="color:var(--win)">${u.balance.toFixed(2)}</td>
+                <td><input type="number" id="nb_${child.key}" style="width:60px"></td>
+                <td><button class="btn btn-set" onclick="setBal('${child.key}')">SET</button></td></tr>`;
         });
-    }
+        document.getElementById('userList').innerHTML = html;
+    });
+}
 
-    function process(key, uid, amt, type) {
-        if(type === 'deposit') {
-            db.ref('users/'+uid+'/balance').transaction(c => (c||0)+amt);
-        }
-        db.ref('requests/'+key).update({status: 'approved'});
-    }
+function approveDep(key, uid, amt) {
+    db.ref('users/' + uid + '/balance').transaction(b => (b || 0) + parseFloat(amt));
+    db.ref('requests/' + key).update({status: 'approved'});
+}
+
+function payWit(key) {
+    db.ref('requests/' + key).update({status: 'paid'});
+}
+
+function setBal(uid) {
+    const val = document.getElementById('nb_' + uid).value;
+    if(val) db.ref('users/' + uid).update({balance: parseFloat(val)});
+}
 </script>
 </body>
-    </html>
-    
+</html>
