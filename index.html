@@ -3,270 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin - Aviator Project Control</title>
+    <title>Master Admin - Aviator VIP Control</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    
     <style>
-        :root { --red: #ea0606; --bg: #0f1015; --card: #1b1c21; --win: #28a745; --blue: #34b4ff; --gold: #f2a900; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
-        
-        #login-box { max-width: 400px; margin: 100px auto; background: var(--card); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid var(--gold); }
-        .login-input { width: 90%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; }
-        .login-btn { background: var(--gold); color: #000; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
-
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--win); padding-bottom: 10px; margin-bottom: 20px; }
-        .section { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #333; }
-        h2 { color: var(--gold); font-size: 18px; text-transform: uppercase; margin-top: 0; }
-        
-        /* Game Control Panel Styles */
-        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .control-card { background: #000; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #444; }
-        .mult-display { font-size: 40px; font-weight: bold; color: var(--win); margin: 10px 0; }
-        .status-txt { font-size: 14px; color: #888; text-transform: uppercase; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th { text-align: left; color: #888; padding: 12px; border-bottom: 1px solid #333; }
-        td { padding: 12px; border-bottom: 1px solid #222; }
-        .btn { padding: 8px 15px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; font-size: 11px; }
-        .btn-app { background: var(--win); margin-right: 5px; }
-        .btn-rej { background: var(--red); }
-        .btn-set { background: var(--blue); }
-        .btn-start { background: var(--win); width: 100%; padding: 12px; font-size: 16px; margin-top: 10px; }
-        .btn-crash { background: var(--red); width: 100%; padding: 12px; font-size: 16px; margin-top: 10px; }
-        
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; width: 80px; }
-        .sms-box { background: #050505; border: 1px solid var(--win); padding: 10px; border-radius: 5px; color: var(--win); font-family: monospace; margin-top: 10px; }
+        :root { --red: #ea0606; --bg: #0b0c10; --card: #1f2833; --win: #45a29e; --blue: #66fcf1; --gold: #f2a900; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        #login-box { max-width: 400px; margin: 80px auto; background: var(--card); padding: 40px; border-radius: 20px; text-align: center; border: 2px solid var(--gold); box-shadow: 0 0 20px rgba(242,169,0,0.2); }
+        .login-input { width: 90%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 8px; }
+        .login-btn { background: var(--gold); color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--blue); padding-bottom: 15px; margin-bottom: 30px; }
+        .section { background: var(--card); padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 1px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stat-card { background: #0b0c10; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #444; }
+        .house-edge-box { background: linear-gradient(45deg, #1f2833, #0b0c10); border: 2px solid var(--red); padding: 20px; border-radius: 15px; text-align: center; }
+        .mult-large { font-size: 50px; font-weight: 900; color: var(--blue); text-shadow: 0 0 10px var(--blue); }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-start { background: var(--win); width: 100%; font-size: 18px; height: 50px; }
+        .btn-crash { background: var(--red); width: 100%; font-size: 18px; height: 50px; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; color: var(--blue); padding: 15px; border-bottom: 2px solid #333; text-transform: uppercase; font-size: 12px; }
+        td { padding: 15px; border-bottom: 1px solid #222; font-size: 14px; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="login-box">
-    <h2 style="color:var(--gold)">PAK AVIATOR VIP</h2>
-    <p>Master Admin Access</p>
+    <h2 style="color:var(--gold)">AVIATOR MASTER CONTROL</h2>
     <input type="email" id="adminEmail" class="login-input" value="M50516573@gmail.com" readonly>
-    <input type="password" id="adminPass" class="login-input" placeholder="Enter VIP Password">
-    <button class="login-btn" onclick="loginAdmin()">LOGIN TO DASHBOARD</button>
+    <input type="password" id="adminPass" class="login-input" placeholder="VIP Security Key">
+    <button class="login-btn" onclick="loginAdmin()">UNLOCK SYSTEM</button>
 </div>
 
 <div id="admin-dashboard" style="display: none;">
     <div class="header">
-        <div><h1>MASTER ADMIN</h1><small>Aviator Project Control</small></div>
-        <div id="stats">Users: Loading...</div>
+        <div><h1>DASHBOARD</h1><small id="serverTime">Server Sync: OK</small></div>
+        <div id="userStats" class="stat-card" style="padding:10px 30px;">Active Users: 0</div>
     </div>
 
-    <div class="section" style="border-color: var(--blue);">
-        <h2>✈️ Live Game Controller (B9 Sync)</h2>
-        <div class="game-grid">
-            <div class="control-card">
-                <div class="status-txt" id="gameStat">Current Status: WAITING</div>
-                <div class="mult-display" id="adminMult">1.00x</div>
+    <div class="section">
+        <div class="control-grid">
+            <div class="house-edge-box">
+                <h3 style="color:var(--red); margin:0;">HOUSE EDGE %</h3>
+                <p style="font-size:11px; color:#888;">(0% = Public Win | 100% = House Win)</p>
+                <input type="number" id="hEdge" value="10" min="0" max="100" style="width:100px; font-size:30px; text-align:center; background:#000; color:var(--red); border:1px solid var(--red); border-radius:10px;">
+                <button class="btn" style="background:var(--red); margin-top:10px;" onclick="saveSettings()">UPDATE EDGE</button>
             </div>
-            <div class="control-card">
-                <button class="btn btn-start" onclick="startPlane()">START PLANE</button>
-                <button class="btn btn-crash" onclick="crashPlane()">CRASH NOW</button>
+            <div class="stat-card">
+                <h3>LIVE ENGINE</h3>
+                <div class="mult-large" id="liveMult">1.00x</div>
+                <div id="gameStatus" style="color:var(--gold)">WAITING</div>
+            </div>
+            <div class="stat-card">
+                <h3>ROUND PROFIT</h3>
+                <div style="font-size:24px; color:var(--win)">Rs <span id="roundBets">0</span></div>
+                <div style="font-size:12px; color:#888;">Total Bet Volume</div>
+                <label style="display:block; margin-top:10px;"><input type="checkbox" id="autoMode" checked> AUTO-PILOT ON</label>
             </div>
         </div>
-        <div style="font-size: 12px; color: #888;">Note: Plane urane se pehle users ki bets check kar len.</div>
+        <div class="game-grid" style="margin-top:20px;">
+            <button class="btn btn-start" id="sBtn" onclick="forceStart()">FORCE START ROUND</button>
+            <button class="btn btn-crash" id="cBtn" onclick="forceCrash()">FORCE CRASH (EMERGENCY)</button>
+        </div>
     </div>
 
     <div class="section">
-        <h2>Live JazzCash SMS Data</h2>
-        <div class="sms-box" id="latestSms">LATEST SMS: [Waiting for data...]</div>
+        <h2>DEPOSITS & WITHDRAWALS</h2>
+        <div class="control-grid">
+            <div style="overflow-x:auto;">
+                <h3>Pending Deposits</h3>
+                <table id="depTable"><thead><tr><th>User</th><th>Amt</th><th>TID</th><th>Action</th></tr></thead><tbody id="depList"></tbody></table>
+            </div>
+            <div style="overflow-x:auto;">
+                <h3>Pending Withdraws</h3>
+                <table id="witTable"><thead><tr><th>User</th><th>Amt</th><th>Bank</th><th>Action</th></tr></thead><tbody id="witList"></tbody></table>
+            </div>
+        </div>
     </div>
 
     <div class="section">
-        <h2>Deposit Requests (Check TID)</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>User Gmail</th>
-                    <th>Amount</th>
-                    <th>TID (JazzCash)</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="depList"></tbody>
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>Withdrawal Requests</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>User Gmail</th>
-                    <th>Amount</th>
-                    <th>Account</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="witList"></tbody>
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>User Management (Edit Balance)</h2>
-        <div style="max-height: 300px; overflow-y: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>User Gmail</th>
-                        <th>Current Bal</th>
-                        <th>Set New</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="userList"></tbody>
-            </table>
+        <h2>USER DATABASE</h2>
+        <div style="max-height:400px; overflow-y:auto;">
+            <table id="userTable"><thead><tr><th>Email</th><th>Balance</th><th>Wager</th><th>Action</th></tr></thead><tbody id="userList"></tbody></table>
         </div>
     </div>
 </div>
 
 <script>
-const conf = { 
-    apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", 
-    databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" 
-};
+const conf = { apiKey: "AIzaSyBXZaME3Z0rd_jsa5LpVG5ZbLpvf6cbu8M", databaseURL: "https://aviator-781d9-default-rtdb.firebaseio.com" };
 firebase.initializeApp(conf);
 const db = firebase.database();
 
-let gameLoop;
-let currentMultiplier = 1.0;
+let currentMult = 1.0;
 let isFlying = false;
+let loop;
+let currentTotalBets = 0;
 
 function loginAdmin() {
-    const email = "M50516573@gmail.com";
-    const pass = document.getElementById("adminPass").value;
-    firebase.auth().signInWithEmailAndPassword(email, pass)
+    const p = document.getElementById('adminPass').value;
+    firebase.auth().signInWithEmailAndPassword("M50516573@gmail.com", p)
     .then(() => {
-        document.getElementById("login-box").style.display = "none";
-        document.getElementById("admin-dashboard").style.display = "block";
-        startApp();
-    })
-    .catch((err) => alert("Error: " + err.message));
+        document.getElementById('login-box').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = 'block';
+        initAdminEngine();
+    }).catch(e => alert(e.message));
 }
 
-// --- GAME CONTROL FUNCTIONS ---
-function startPlane() {
-    if(isFlying) return;
-    isFlying = true;
-    currentMultiplier = 1.0;
-    db.ref('game_state').update({ isWaiting: false, isFlying: true, mult: 1.0 });
+function initAdminEngine() {
+    // Sync House Edge
+    db.ref('settings/houseEdge').on('value', s => { if(s.exists()) document.getElementById('hEdge').value = s.val(); });
+
+    // Live Game Monitor
+    db.ref('game_state').on('value', snap => {
+        const d = snap.val();
+        if(!d) return;
+        currentMult = d.mult;
+        isFlying = d.isFlying;
+        document.getElementById('liveMult').innerText = currentMult.toFixed(2) + "x";
+        document.getElementById('gameStatus').innerText = d.isWaiting ? "WAITING (" + d.timer + "s)" : (d.isFlying ? "FLYING" : "CRASHED");
+    });
+
+    // Bet Monitor
+    db.ref('active_bets').on('value', snap => {
+        currentTotalBets = 0;
+        snap.forEach(b => { currentTotalBets += parseFloat(b.val().amt || 0); });
+        document.getElementById('roundBets').innerText = currentTotalBets;
+    });
+
+    loadData();
+    // Start Auto-Pilot Logic
+    setInterval(autoPilotEngine, 1000);
+}
+
+function saveSettings() {
+    const edge = document.getElementById('hEdge').value;
+    db.ref('settings').update({ houseEdge: parseInt(edge) });
+    alert("House Edge updated to " + edge + "%");
+}
+
+function autoPilotEngine() {
+    if(!document.getElementById('autoMode').checked) return;
     
-    gameLoop = setInterval(() => {
-        currentMultiplier += 0.01;
-        document.getElementById('adminMult').innerText = currentMultiplier.toFixed(2) + "x";
-        document.getElementById('gameStat').innerText = "Status: FLYING";
-        db.ref('game_state').update({ mult: currentMultiplier });
-        
-        // Auto Crash Safety (Profit Margin 10%)
-        if(currentMultiplier > 15.0) crashPlane(); 
+    db.ref('game_state').once('value', snap => {
+        const d = snap.val();
+        if(d.isWaiting && d.timer <= 0) {
+            startFlying();
+        }
+        if(d.isFlying) {
+            checkCrashLogic(d.mult);
+        }
+        if(!d.isFlying && !d.isWaiting) {
+            // After crash, wait 3s then reset to waiting
+            setTimeout(() => {
+                db.ref('game_state').update({ isWaiting: true, isFlying: false, timer: 7, mult: 1.0 });
+                db.ref('active_bets').remove(); // Clear bets for new round
+            }, 3000);
+        }
+    });
+}
+
+function startFlying() {
+    db.ref('game_state').update({ isWaiting: false, isFlying: true, mult: 1.0 });
+    loop = setInterval(() => {
+        currentMult += 0.01;
+        db.ref('game_state').update({ mult: currentMult });
     }, 100);
 }
 
-function crashPlane() {
-    clearInterval(gameLoop);
-    isFlying = false;
-    db.ref('game_state').update({ isFlying: false, isWaiting: false });
-    document.getElementById('gameStat').innerText = "Status: CRASHED";
+function checkCrashLogic(m) {
+    const edge = parseInt(document.getElementById('hEdge').value);
     
-    setTimeout(() => {
-        db.ref('game_state').update({ isWaiting: true, timer: 7, mult: 1.0 });
-        document.getElementById('gameStat').innerText = "Status: WAITING";
-        document.getElementById('adminMult').innerText = "1.00x";
-    }, 3000);
+    // Profit Calculation: Agar total bets se payouts upar ja rahe hon, to crash kar do
+    // Logic: House Edge determines maximum payout allowed
+    let maxPayoutAllowed = currentTotalBets * (1 - (edge/100));
+    
+    // Random Crash Factor (For natural feel)
+    let randomCrash = Math.random();
+    
+    if(edge === 100 || (m > 1.1 && randomCrash < 0.015)) { 
+        forceCrash(); 
+    } else if (edge > 0 && m > 2.0 && randomCrash < (edge/1000)) {
+        forceCrash();
+    }
 }
 
-function startApp() {
-    // SMS Listener (Agar aap Tasker use kar rahe hain)
-    db.ref('last_sms').on('value', snap => {
-        if(snap.exists()) document.getElementById('latestSms').innerText = "LATEST SMS: " + snap.val();
-    });
+function forceCrash() {
+    clearInterval(loop);
+    db.ref('game_state').update({ isFlying: false, isWaiting: false });
+}
 
-    // Deposits
-    db.ref('requests').orderByChild('type').equalTo('deposit').on('value', snap => {
-        let html = "";
-        snap.forEach(child => {
-            const r = child.val();
+function forceStart() {
+    db.ref('game_state').update({ isWaiting: false, isFlying: true, timer: 0 });
+}
+
+// Data Loading Functions (Same as before but optimized)
+function loadData() {
+    db.ref('requests').on('value', snap => {
+        let dHtml = "", wHtml = "";
+        snap.forEach(c => {
+            const r = c.val();
             if(r.status === 'pending') {
-                html += `<tr>
-                    <td>${r.email}</td>
-                    <td>Rs ${r.amount}</td>
-                    <td style="color:var(--gold)">${r.tid}</td>
-                    <td>
-                        <button class="btn btn-app" onclick="approveDep('${child.key}', '${r.uid}', ${r.amount})">APPROVE</button>
-                        <button class="btn btn-rej" onclick="rejectReq('${child.key}')">REJECT</button>
-                    </td>
-                </tr>`;
+                const row = `<tr><td>${r.email}</td><td>${r.amount}</td><td>${r.tid || r.number}</td>
+                <td><button class="btn" style="background:var(--win)" onclick="approveReq('${c.key}','${r.uid}',${r.amount},'${r.type}')">OK</button></td></tr>`;
+                if(r.type === 'deposit') dHtml += row; else wHtml += row;
             }
         });
-        document.getElementById('depList').innerHTML = html || "<tr><td colspan='4'>No pending deposits</td></tr>";
+        document.getElementById('depList').innerHTML = dHtml;
+        document.getElementById('witList').innerHTML = wHtml;
     });
 
-    // Withdrawals
-    db.ref('requests').orderByChild('type').equalTo('withdraw').on('value', snap => {
-        let html = "";
-        snap.forEach(child => {
-            const r = child.val();
-            if(r.status === 'pending') {
-                html += `<tr>
-                    <td>${r.email}</td>
-                    <td>Rs ${r.amount}</td>
-                    <td>${r.number}</td>
-                    <td>
-                        <button class="btn btn-app" onclick="updateStatus('${child.key}', 'paid')">PAID</button>
-                        <button class="btn btn-rej" onclick="refundWit('${child.key}', '${r.uid}', ${r.amount})">REJECT</button>
-                    </td>
-                </tr>`;
-            }
-        });
-        document.getElementById('witList').innerHTML = html || "<tr><td colspan='4'>No pending withdrawals</td></tr>";
-    });
-
-    // User List
     db.ref('users').on('value', snap => {
-        let html = ""; let count = 0;
-        snap.forEach(child => {
-            count++; const u = child.val();
-            html += `<tr>
-                <td>${u.email}</td>
-                <td style="color:var(--win)">Rs ${u.balance.toFixed(2)}</td>
-                <td><input type="number" id="newBal_${child.key}" placeholder="0"></td>
-                <td><button class="btn btn-set" onclick="setBalance('${child.key}')">SET</button></td>
-            </tr>`;
+        let uHtml = "";
+        snap.forEach(c => {
+            const u = c.val();
+            uHtml += `<tr><td>${u.email}</td><td style="color:var(--blue)">${u.balance.toFixed(2)}</td><td>${u.wager}</td>
+            <td><button class="btn" style="background:var(--gold)" onclick="editUser('${c.key}')">EDIT</button></td></tr>`;
         });
-        document.getElementById('userList').innerHTML = html;
-        document.getElementById('stats').innerText = "Users: " + count;
+        document.getElementById('userList').innerHTML = uHtml;
     });
 }
 
-// Functions for Actions
-function approveDep(key, uid, amt) {
-    db.ref('users/' + uid + '/balance').transaction(c => (c || 0) + parseFloat(amt));
-    db.ref('requests/' + key).update({status: 'approved'});
-    alert("Approved!");
-}
-
-function updateStatus(key, status) {
-    db.ref('requests/' + key).update({status: status});
-    alert("Status: " + status);
-}
-
-function refundWit(key, uid, amt) {
-    db.ref('users/' + uid + '/balance').transaction(c => (c || 0) + parseFloat(amt));
-    db.ref('requests/' + key).update({status: 'rejected'});
-    alert("Refunded!");
-}
-
-function rejectReq(key) { db.ref('requests/' + key).update({status: 'rejected'}); alert("Rejected!"); }
-
-function setBalance(uid) {
-    const val = document.getElementById('newBal_' + uid).value;
-    if(val === "") return;
-    db.ref('users/' + uid).update({balance: parseFloat(val)});
-    alert("Updated!");
+function approveReq(key, uid, amt, type) {
+    if(type === 'deposit') db.ref('users/'+uid+'/balance').transaction(c => (c||0)+amt);
+    db.ref('requests/'+key).update({status: 'approved'});
 }
 </script>
 </body>
